@@ -12,7 +12,7 @@ A simple HTML game loaded onto the user’s device whenever there is an internet
 
 ### Motivation:
 
-The internet connection at RMIT University Vietnam SGS Campus has frequently been an issue among staffs and students, and more so during the recent months of Semester 3 of 2020. This is evidenced on the RMIT Confessions Facebook page as a quick search for posts containing the word “wifi” shows a lot of complaints about the slow network connection at SGS campus (see Appendix A) that appears to coincide with the student influx in Semester 3 of each year. Furthermore, in a recent Facebook post on November 28th, 2020, RMIT University Vietnam wrote: “Internet usage at SGS campus has recently been unstable due to the overuse of streaming platforms for music, movies, YouTube, Facebook and other services not directly related to academic needs. This has been severely impacting the digital experience of our community…”[1] This issue is undeniably a controversial topic of discussion recognized by both the faculties and students. Although we have yet to find an effective solution for this problem, my idea would work as a short-term solution to get the matter more recognition, and in the long term to provide our campus community with a geeky insider only “easter egg” campus feature.
+The internet connection at RMIT University Vietnam SGS Campus has frequently been an issue among staffs and students, and more so during the recent months of Semester 3 of 2020. This is evidenced on the RMIT Confessions Facebook page as a quick search for posts containing the word “wifi” shows a lot of complaints about the slow network connection at SGS campus that appears to coincide with the student influx in Semester 3 of each year. Furthermore, in a recent Facebook post on November 28th, 2020, RMIT University Vietnam wrote: “Internet usage at SGS campus has recently been unstable due to the overuse of streaming platforms for music, movies, YouTube, Facebook and other services not directly related to academic needs. This has been severely impacting the digital experience of our community…”[1] This issue is undeniably a controversial topic of discussion recognized by both the faculties and students. Although we have yet to find an effective solution for this problem, my idea would work as a short-term solution to get the matter more recognition, and in the long term to provide our campus community with a geeky insider only “easter egg” campus feature.
 
 
 ### Description:
@@ -52,3 +52,15 @@ At the moment, I have come up with two candidate control schemes:
 *	Sound design: Audacity for rudimentary audio editing and Studio One for production-quality audio engineering.
 *	Version control: Git with repository hosted on GitHub (https://github.com).
 * Permission to access RMIT University Vietnam SGS Campus wireless network hardware. This would be the hardest part of this project due to strict network authorization at RMIT SGS campus.
+
+
+## References
+
+[1]	RMIT University Vietnam, "Solution for the wi-fi issue at SGS Campus," https://www.facebook.com/RMITUniversityVietnam/photos/a.680416032023173/3688582664539813/, Ed., ed, 2020.
+
+[2]	A. Roshan. "Google Easter Eggs : 15+ Best Google Easter Eggs & Google Tricks 2017." https://web.archive.org/web/20170805055813/http://feedsyouneed.com/google-easter-eggs-google-tricks/ (accessed December 4th, 2020).
+
+
+## Extras
+
+**Full post can be found here: https://miketvo.github.io/blog/project-idea-nov-2020.html**
