@@ -20,13 +20,15 @@ The internet connection at RMIT University Vietnam SGS Campus has frequently bee
 The local wireless network at RMIT SGS would send a custom error page containing the error message and a HTML game to the user’s browser whenever a connection timed out error occurs. This concept is similar in idea to the Dinosaur Game developed by Google for their Chrome browser[2], but this would instead be implemented on a network-wide system, not just on the local machine. The process is visually described in Fig 1 shown below (heavily simplified for brevity):
 
 ![Fig 1. Internet access at RMIT](https://github.com/miketvo/miketvo.github.io/blob/main/images/12.2020/Fig-1-Internet-access-at-RMIT.jpg)
-Fig 1. Internet access at RMIT
+
+*Fig 1. Internet access at RMIT*
  
 In the game, the player controls RMIT’s mascot – Rupert the Redback spider (Fig 2) shooting his spider web at the ceiling to swing from left to right while avoiding dangerous obstacles. The objective is to travel as furthest away from the starting point as possible. It would feature a lives system: Rupert has three lives, each time he hits the ceiling, the floor, or and obstacle, he would lose one. The game ends when Rupert has no lives left and the score is then reported to the player based on the distance travelled (Fig 3). The obstacles are randomly generated indefinitely until the game ends. To further engage the player, achievements would be given every 500 meters travelled, and the score would be saved into a scoreboard on RMIT network so that students can compete with each other for highscore.
 The game would feature a flat design so that the RMIT Logo can be easily incorporated into the character design (Fig 3). Thus, the physics system will be modeled after real-life physics instead of the arcade-style physics usually implemented in games with pixel art sprites. For this task, the Phaser game framework is the perfect tool as it also features an accurate real-life physics model (See Tools and Technologies).
    
 ![Fig 2. Rupert the Redback Spider](https://github.com/miketvo/miketvo.github.io/blob/main/images/12.2020/rmit-rupert.jpg)
-Fig 2. Rupert the Redback Spider
+
+*Fig 2. Rupert the Redback Spider*
 
 The page should be compatible with both mobile and desktop platforms. Thus, the game must be responsive to different screen sizes and must feature keyboard, mouse, and touchscreen input for consistent and optimal user experience across devices. For that reason, the control must be simple and intuitive for mobile compatibility.
 At the moment, I have come up with two candidate control schemes:
@@ -39,7 +41,8 @@ At the moment, I have come up with two candidate control schemes:
   *	Extra feature: The wind strength will be increased incrementally every 500 meters travelled for scaled difficulty.
   
 ![Fig 3. Preliminary concept sketches](https://github.com/miketvo/miketvo.github.io/blob/main/images/12.2020/concept-sketch-capture-12-14-2020.jpg)
-Fig 3. Preliminary concept sketches
+
+*Fig 3. Preliminary concept sketches*
 
 
 ### Tools and Technologies:
