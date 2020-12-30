@@ -1,6 +1,6 @@
-class BootGame extends Phaser.Scene {
+class PreloadGame extends Phaser.Scene {
     constructor() {
-        super("bootGame");
+        super("preloadGame");
     }
 
     preload() {
@@ -22,6 +22,6 @@ class BootGame extends Phaser.Scene {
         let loadingCue = this.add.text(config.width / 2, config.height / 2, "Loading, please wait...");
         loadingCue.setOrigin(0.5);
 
-        this.scene.start("runGame");
+        // this.scene.start("createGame");
     }
 }

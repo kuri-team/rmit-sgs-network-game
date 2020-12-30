@@ -1,4 +1,4 @@
-var config = {
+let config = {
     scale: {
         parent: 'game-wrapper',
         mode: Phaser.Scale.FIT,
@@ -13,11 +13,24 @@ var config = {
             debug: false
         }
     },
+    // physics: {
+    //     default: "matter",
+    //     matter: {
+    //         enableSleeping: true,
+    //         gravity: {
+    //             y: 1000
+    //         },
+    //         debug: {
+    //             showBody: true,
+    //             showStaticBody: true
+    //         }
+    //     }
+    // },
     backgroundColor: "#ffffff",
     scene: [
-        BootGame, RunGame
+        PreloadGame, CreateGame, UpdateGame
     ],
     pixelArt: true
 }
 
-var game = new Phaser.Game(config);
+let game = new Phaser.Game(config);

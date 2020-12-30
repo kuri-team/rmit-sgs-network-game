@@ -1,13 +1,12 @@
-class RunGame extends Phaser.Scene {
+class CreateGame extends Phaser.Scene {
     constructor() {
-        super("runGame");
+        super("createGame");
         this.playerPhysics = {
             initialSpeedX: 100,
             initialSpeedY: -100,
             accelerationX: 1,
             accelerationY: 0,
         }
-        this.gameOver = false;
     }
 
     create() {
@@ -44,15 +43,14 @@ class RunGame extends Phaser.Scene {
         this.mainCam.startFollow(this.player, false, 1, 1, -config.scale.width / 5, 0);
         this.mainCam.setDeadzone(0, config.scale.height);
         this.mainCam.setLerp(1, 0);
-    }
 
-    update() {
+        // Switch to UpdateGame scene
+        this.scene.start("updateGame");
     }
 
     killPlayer(gameObject) {
         gameObject.setTexture("player_explode");
         gameObject.play("player_explode_anim");
         this.physics.pause();
-        this.gameOver = true;
     }
 }
