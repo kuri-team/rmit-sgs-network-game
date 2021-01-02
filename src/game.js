@@ -1,3 +1,4 @@
+import GAMESETTINGS from "./settings.js";
 import PreloadGame from "./scenes/PreloadGame.js";
 import RunGame from "./scenes/RunGame.js";
 
@@ -8,15 +9,15 @@ let config = {
     type: Phaser.AUTO,
     scale: {
         parent: 'game-wrapper',
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-        width: 304,
-        height: 160
+        mode: Phaser.Scale.NONE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: GAMESETTINGS.nativeWidth,
+        height: GAMESETTINGS.nativeHeight
     },
     physics: {
-        default: "arcade",
-        arcade: {
-            gravity: { y: 300 },
+        default: "matter",
+        matter: {
+            gravity: { x: GAMESETTINGS.gravity.x, y: GAMESETTINGS.gravity.y },
             debug: true
         }
     },
@@ -30,5 +31,5 @@ let game = new Phaser.Game(config);
 
 export default {
     game,
-    config
+    config,
 };
