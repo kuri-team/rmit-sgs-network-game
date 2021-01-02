@@ -1,3 +1,6 @@
+import GAMESETTINGS from "../settings.js";
+
+
 /***
  * Gameplay class
  */
@@ -18,12 +21,19 @@ export default class RunGame extends Phaser.Scene {
     ceiling;
     /** @type {Phaser.Physics.Matter.Sprite} **/
     player;
+    /** @type {MatterJS.ConstraintType} **/
+    web;
+    /** @type {boolean} **/
+    webExist;
+    /** @type {Phaser.Types.Input.Keyboard.CursorKeys} **/
+    cursor;
     /* End of custom properties */
 
 
     init() {
         this.matter.set60Hz();
         this.score = 0;
+        this.webExist = true;
     }
 
     create() {
@@ -31,12 +41,15 @@ export default class RunGame extends Phaser.Scene {
         this.createBackground();
         this.ceiling = this.createCeilingAnchors();
         this.player = this.createPlayer(this.game.scale.width / 3, this.game.scale.height / 2);
-        // this.matter.add.constraint(this.player.body, this.ceiling[20].body);
-        console.log(this.player);
+        this.web = this.playerShootWeb();
+
+        this.cursor = this.input.keyboard.createCursorKeys();  // Enable player control
     }
 
     update(time, delta) {
-        super.update(time, delta);
+        super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
+        this.renderPlayerWeb();
+        this.updatePlayer();
     }
 
 
@@ -71,7 +84,7 @@ export default class RunGame extends Phaser.Scene {
      */
     createPlayer(x, y) {
         // TODO: Re-adjust collision box to exclude the legs
-        return this.matter.add.sprite(x, y, 'player');
+        return this.matter.add.sprite(x, y, 'player').setOrigin(0.5, 0);
     }
 
     /***
@@ -84,9 +97,47 @@ export default class RunGame extends Phaser.Scene {
             /** @type {MatterJS.BodyType} **/
             let anchor = this.matter.add.rectangle(i, -1, 1, 2);
             anchor.ignoreGravity = true;
+            anchor.isStatic = true;
             anchors.push(anchor);
         }
         return anchors;
+    }
+
+    playerShootWeb() {
+        let targetAnchorIdx = Math.floor(this.game.scale.width / 2);
+        return this.matter.add.constraint(this.player.body, this.ceiling[targetAnchorIdx]);
+    }
+
+    playerCutWeb(playerWebObject) {
+        this.matter.world.removeConstraint(playerWebObject, true);
+    }
+
+    renderPlayerWeb() {
+        if (!this.graphics) {
+            this.graphics = this.add.graphics();
+        }
+        this.graphics.clear();
+
+        if (this.webExist) {
+            this.matter.world.renderConstraint(this.web, this.graphics, -1, 1, 1, 0, -1, 0);
+        }
+    }
+
+    updatePlayer() {
+        if (this.cursor.left.isDown && this.webExist) {  // Left key
+            this.matter.applyForce(this.player.body, { x: -GAMESETTINGS.controlSensitivity, y: 0 });
+        }
+        if (this.cursor.right.isDown && this.webExist) {  // Right key
+            this.matter.applyForce(this.player.body, { x: GAMESETTINGS.controlSensitivity, y: 0 });
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.cursor.space) && this.webExist) {  // Spacebar to cut web
+            this.playerCutWeb(this.web);
+            this.webExist = false;
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.cursor.space) && !this.webExist) {  // Spacebar to shoot web
+            this.web = this.playerShootWeb();
+            this.webExist = true;
+        }
     }
     /* End of custom methods */
 }

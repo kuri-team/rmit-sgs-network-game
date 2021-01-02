@@ -9,7 +9,7 @@ let config = {
     type: Phaser.AUTO,
     scale: {
         parent: 'game-wrapper',
-        mode: Phaser.Scale.NONE,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: GAMESETTINGS.nativeWidth,
         height: GAMESETTINGS.nativeHeight
@@ -18,7 +18,7 @@ let config = {
         default: "matter",
         matter: {
             gravity: { x: GAMESETTINGS.gravity.x, y: GAMESETTINGS.gravity.y },
-            debug: true
+            debug: GAMESETTINGS.debug
         }
     },
     scene: [
