@@ -10,7 +10,7 @@ const GAMESETTINGS = {
         y: 0.15
     },
     controlSensitivity: 0.000015,
-    debug: false
+    debug: true
 };
 
 export default GAMESETTINGS;

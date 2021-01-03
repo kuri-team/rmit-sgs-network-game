@@ -83,8 +83,20 @@ export default class RunGame extends Phaser.Scene {
      * @returns {Phaser.Physics.Matter.Sprite}
      */
     createPlayer(x, y) {
-        // TODO: Re-adjust collision box to exclude the legs
-        return this.matter.add.sprite(x, y, 'player').setOrigin(0.5, 0);
+        let player = this.matter.add.sprite(x, y, 'player').setOrigin(0.5, 0);
+
+        // Readjust collision box yOffset
+        for (let i = 0; i < player.body.vertices.length; i++) {
+            player.body.vertices[i].y += player.displayHeight / 2;
+        }
+
+        // Exclude legs from collision box
+        player.body.vertices[0].x += 3;
+        player.body.vertices[1].x -= 3;
+        player.body.vertices[2].x -= 3;
+        player.body.vertices[3].x += 3;
+
+        return player;
     }
 
     /***
