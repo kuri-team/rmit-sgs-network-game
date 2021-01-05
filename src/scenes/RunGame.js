@@ -186,7 +186,7 @@ export default class RunGame extends Phaser.Scene {
     }
 
     setupCamera() {
-        let offsetX = -GAMESETTINGS.player.initialX; // TODO: Only works for initialX = 40
+        let offsetX = -GAMESETTINGS.player.initialX;  // TODO: Only works for initialX = 40
         let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
 
         this.cam = this.cameras.main;
