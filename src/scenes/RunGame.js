@@ -240,10 +240,14 @@ export default class RunGame extends Phaser.Scene {
     }
 
     updateDebugInfo() {
-        this.debugText = "STATS FOR NERDS\n"
-            + `Player.x = ${this.player.x}\n`
-            + `Player.y = ${this.player.y}\n`
-            + `webExist = ${this.webExist}\n`;
+        this.debugText = "STATS FOR NERDS\n\n"
+            + `player.x = ${this.player.x}\n`
+            + `player.y = ${this.player.y}\n`
+            + `webExist = ${this.webExist}\n`
+            + '\n'
+            + `viewport.scrollX ${this.cam.scrollX}\n`
+            + `viewport.scrollY ${this.cam.scrollY}\n`
+        ;
         this.debugTextObj.text = this.debugText;
     }
     /* End of custom methods */
