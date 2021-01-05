@@ -17,30 +17,46 @@ export default class RunGame extends Phaser.Scene {
      */
     /** @type {string} **/
     debugText;
+
     /** @type {Phaser.GameObjects.Text} **/
     debugTextObj;
+
+    /** @type {Boolean} **/
+    gameOver;
+
     /** @type {number} **/
     score;
+
     /** @type {[{MatterJS.BodyType}]} **/
     ceiling;
+
     /** @type {Phaser.Physics.Matter.Sprite} **/
     player;
+
+    /** @type {MatterJS.BodyType} **/
+    playerPivot;
+
     /** @type {MatterJS.ConstraintType} **/
     web;
+
     /** @type {boolean} **/
     webExist;
+
     /** @type {Phaser.Types.Input.Keyboard.CursorKeys} **/
     cursor;
+
     /** @type {Phaser.Input.Pointer} **/
     pointer;
+
     /** @type {Phaser.Cameras.Scene2D.Camera} **/
-    cam;
+    viewport;
     /* End of custom properties */
 
 
     init() {
         this.debugText = "";
         this.matter.set60Hz();
+        this.gameOver = false;
         this.score = 0;
     }
 
@@ -48,12 +64,16 @@ export default class RunGame extends Phaser.Scene {
         this.createBackground();
         this.ceiling = this.createCeilingAnchors();
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
+        this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
 
-        this.cursor = this.input.keyboard.createCursorKeys();  // Enable player control via keyboard
+        // Enable player control via keyboard
+        this.cursor = this.input.keyboard.createCursorKeys();
 
+        // Enable camera following
         this.setupCamera();
 
+        // Create and render debug info if specified in game settings object
         if (GAMESETTINGS.debug) { this.createDebugInfo(); }
     }
 
@@ -62,6 +82,7 @@ export default class RunGame extends Phaser.Scene {
         this.updatePlayer();
         this.renderPlayerWeb();
 
+        // Update debug information if specified in game settings object
         if (GAMESETTINGS.debug) { this.updateDebugInfo(); }
     }
 
@@ -108,6 +129,26 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
+     * Create a pivot where the player sprite will shoot the spider web from
+     * @param {Phaser.Physics.Matter.Sprite} playerObj
+     * @returns {MatterJS.BodyType}
+     */
+    createPlayerPivot(playerObj) {
+        let pivot = this.matter.add.circle(playerObj.x, playerObj.y, GAMESETTINGS.scaleFactor);
+        let joint = this.matter.add.joint(playerObj, pivot, 0, 0.7);
+        joint.pointA = {
+            x: 0,
+            y: -GAMESETTINGS.scaleFactor
+        };
+
+        // Turn off collision between player and pivot
+        pivot.collisionFilter = { group: -1 };
+        playerObj.collisionFilter = { group: -1 };
+
+        return pivot;
+    }
+
+    /***
      * Create and return an array of the ceiling anchors
      * @returns {[{MatterJS.BodyType}]}
      */
@@ -129,11 +170,11 @@ export default class RunGame extends Phaser.Scene {
      * Configure the viewport to follow the player's character
      */
     setupCamera() {
-        let offsetX = -GAMESETTINGS.player.initialX;  // TODO: Only works for initialX = 40
-        let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
+        let offsetX = -(this.game.scale.width / 2) + GAMESETTINGS.player.initialX;
+        let offsetY = -(this.game.scale.height / 2) + GAMESETTINGS.player.initialY;
 
-        this.cam = this.cameras.main;
-        this.cam.startFollow(
+        this.viewport = this.cameras.main;
+        this.viewport.startFollow(
             this.player,
             true,
             1, 0,
@@ -148,7 +189,7 @@ export default class RunGame extends Phaser.Scene {
      */
     playerShootWeb(targetAnchorIdx) {
         this.webExist = true;
-        return this.matter.add.constraint(this.player.body, this.ceiling[targetAnchorIdx]);
+        return this.matter.add.constraint(this.playerPivot, this.ceiling[targetAnchorIdx]);
     }
 
     /***
@@ -226,10 +267,9 @@ export default class RunGame extends Phaser.Scene {
             } catch (TypeError) {
                 console.log("Can't find ceiling anchors! Restarting")
                 this.scene.start('runGame');
-            }  // Restart game
+            }  // Restart game TODO: This is only to catch errors! Need replacement later.
         }
     }
-
 
     // =========================================== FOR DEBUGGING PURPOSES =========================================== //
 
@@ -245,8 +285,8 @@ export default class RunGame extends Phaser.Scene {
             + `player.y = ${this.player.y}\n`
             + `webExist = ${this.webExist}\n`
             + '\n'
-            + `viewport.scrollX ${this.cam.scrollX}\n`
-            + `viewport.scrollY ${this.cam.scrollY}\n`
+            + `viewport.scrollX ${this.viewport.scrollX}\n`
+            + `viewport.scrollY ${this.viewport.scrollY}\n`
         ;
         this.debugTextObj.text = this.debugText;
     }

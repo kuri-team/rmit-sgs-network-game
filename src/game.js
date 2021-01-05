@@ -3,8 +3,16 @@ import PreloadGame from "./scenes/PreloadGame.js";
 import RunGame from "./scenes/RunGame.js";
 
 
+let debug = false;
+if (GAMESETTINGS.debug) {
+    debug = {
+        showVelocity: true,
+        showCollisions: true
+    }
+}
+
 let config = {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#c2c2c2",
     pixelArt: true,
     type: Phaser.AUTO,
     scale: {
@@ -18,7 +26,7 @@ let config = {
         default: "matter",
         matter: {
             gravity: { x: GAMESETTINGS.gravity.x, y: GAMESETTINGS.gravity.y },
-            debug: GAMESETTINGS.debug
+            debug: debug
         }
     },
     scene: [
