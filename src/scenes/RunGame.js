@@ -15,6 +15,10 @@ export default class RunGame extends Phaser.Scene {
     * ---------CUSTOM PROPERTIES------- *
     *************************************
      */
+    /** @type {string} **/
+    debugText;
+    /** @type {Phaser.GameObjects.Text} **/
+    debugTextObj;
     /** @type {number} **/
     score;
     /** @type {[{MatterJS.BodyType}]} **/
@@ -35,6 +39,7 @@ export default class RunGame extends Phaser.Scene {
 
 
     init() {
+        this.debugText = "";
         this.matter.set60Hz();
         this.score = 0;
     }
@@ -229,9 +234,17 @@ export default class RunGame extends Phaser.Scene {
     // =========================================== FOR DEBUGGING PURPOSES =========================================== //
 
     createDebugInfo() {
+        this.debugTextObj = this.add.text(
+            GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor, this.debugText, { color: "#0f0" }
+        ).setScrollFactor(0);
     }
 
     updateDebugInfo() {
+        this.debugText = "STATS FOR NERDS\n"
+            + `Player.x = ${this.player.x}\n`
+            + `Player.y = ${this.player.y}\n`
+            + `webExist = ${this.webExist}\n`;
+        this.debugTextObj.text = this.debugText;
     }
     /* End of custom methods */
 }
