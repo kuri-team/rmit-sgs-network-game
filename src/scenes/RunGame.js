@@ -25,6 +25,8 @@ export default class RunGame extends Phaser.Scene {
     ceiling;
     /** @type {Phaser.Physics.Matter.Sprite} **/
     player;
+    /** @type {MatterJS.BodyType} **/
+    playerPivot;
     /** @type {MatterJS.ConstraintType} **/
     web;
     /** @type {boolean} **/
@@ -48,6 +50,7 @@ export default class RunGame extends Phaser.Scene {
         this.createBackground();
         this.ceiling = this.createCeilingAnchors();
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
+        this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
 
         this.cursor = this.input.keyboard.createCursorKeys();  // Enable player control via keyboard
@@ -108,6 +111,26 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
+     * Create a pivot where the player sprite will shoot the spider web from
+     * @param {Phaser.Physics.Matter.Sprite} playerObj
+     * @returns {MatterJS.BodyType}
+     */
+    createPlayerPivot(playerObj) {
+        let pivot = this.matter.add.circle(playerObj.x, playerObj.y, GAMESETTINGS.scaleFactor);
+        let joint = this.matter.add.joint(playerObj, pivot, 0, 0.7);
+        joint.pointA = {
+            x: 0,
+            y: -GAMESETTINGS.scaleFactor
+        };
+
+        // Turn off collision between player and pivot
+        pivot.collisionFilter = { group: -1 };
+        playerObj.collisionFilter = { group: -1 };
+
+        return pivot;
+    }
+
+    /***
      * Create and return an array of the ceiling anchors
      * @returns {[{MatterJS.BodyType}]}
      */
@@ -132,9 +155,6 @@ export default class RunGame extends Phaser.Scene {
         let offsetX = -(this.game.scale.width / 2) + GAMESETTINGS.player.initialX;
         let offsetY = -(this.game.scale.height / 2) + GAMESETTINGS.player.initialY;
 
-        console.log(this.game.scale.width + " " + offsetX);
-        console.log(this.game.scale.height + " " + offsetY);
-
         this.cam = this.cameras.main;
         this.cam.startFollow(
             this.player,
@@ -151,7 +171,7 @@ export default class RunGame extends Phaser.Scene {
      */
     playerShootWeb(targetAnchorIdx) {
         this.webExist = true;
-        return this.matter.add.constraint(this.player.body, this.ceiling[targetAnchorIdx]);
+        return this.matter.add.constraint(this.playerPivot, this.ceiling[targetAnchorIdx]);
     }
 
     /***
