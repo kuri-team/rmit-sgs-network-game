@@ -11,8 +11,8 @@ let config = {
         parent: 'game-wrapper',
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: GAMESETTINGS.nativeWidth,
-        height: GAMESETTINGS.nativeHeight
+        width: GAMESETTINGS.nativeWidth * GAMESETTINGS.scaleFactor,
+        height: GAMESETTINGS.nativeHeight * GAMESETTINGS.scaleFactor
     },
     physics: {
         default: "matter",
@@ -24,7 +24,7 @@ let config = {
     scene: [
         PreloadGame, RunGame
     ]
-}
+};
 
 let game = new Phaser.Game(config);
 
