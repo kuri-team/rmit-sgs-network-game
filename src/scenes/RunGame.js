@@ -79,7 +79,6 @@ export default class RunGame extends Phaser.Scene {
 
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
-        this.updateCeilingAnchors();
         this.updatePlayer();
         this.renderPlayerWeb();
 
