@@ -24,7 +24,7 @@ let config = {
     scene: [
         PreloadGame, RunGame
     ]
-}
+};
 
 let game = new Phaser.Game(config);
 
