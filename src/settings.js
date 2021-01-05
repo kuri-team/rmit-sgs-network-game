@@ -22,6 +22,7 @@ const GAMESETTINGS = {
         y: 0.15 * scaleFactor
     },
     controlSensitivity: 0.00015 * scaleFactor,
+    debug: true
 };
 
 export default GAMESETTINGS;

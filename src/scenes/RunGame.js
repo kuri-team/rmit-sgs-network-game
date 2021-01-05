@@ -48,12 +48,16 @@ export default class RunGame extends Phaser.Scene {
         this.cursor = this.input.keyboard.createCursorKeys();  // Enable player control via keyboard
 
         this.setupCamera();
+
+        if (GAMESETTINGS.debug) { this.createDebugInfo(); }
     }
 
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
         this.updatePlayer();
         this.renderPlayerWeb();
+
+        if (GAMESETTINGS.debug) { this.updateDebugInfo(); }
     }
 
 
@@ -61,6 +65,10 @@ export default class RunGame extends Phaser.Scene {
     ************************************
     * ----------CUSTOM METHODS-------- *
     ************************************/
+    /***
+     * Create the background
+     * @returns {Phaser.GameObjects.Image}
+     */
     createBackground() {
         return this.add.image(this.game.scale.width / 2, this.game.scale.height / 2, 'background')
             .setScale(GAMESETTINGS.scaleFactor)
@@ -112,16 +120,45 @@ export default class RunGame extends Phaser.Scene {
         return anchors;
     }
 
+    /***
+     * Configure the viewport to follow the player's character
+     */
+    setupCamera() {
+        let offsetX = -GAMESETTINGS.player.initialX;  // TODO: Only works for initialX = 40
+        let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
+
+        this.cam = this.cameras.main;
+        this.cam.startFollow(
+            this.player,
+            true,
+            1, 0,
+            offsetX, offsetY
+        );
+    }
+
+    /***
+     * Create a player web (type MatterJS constraint) between the player character and a specified point on the ceiling
+     * @param {number} targetAnchorIdx
+     * @returns {MatterJS.ConstraintType}
+     */
     playerShootWeb(targetAnchorIdx) {
         this.webExist = true;
         return this.matter.add.constraint(this.player.body, this.ceiling[targetAnchorIdx]);
     }
 
+    /***
+     * Destroy the specified player web (type MatterJS constraint)
+     * @param {MatterJS.ConstraintType} playerWebObject
+     * @returns {Phaser.Physics.Matter.World}
+     */
     playerCutWeb(playerWebObject) {
         this.webExist = false;
         return this.matter.world.removeConstraint(playerWebObject, true);
     }
 
+    /***
+     * Show the web on screen if it exists
+     */
     renderPlayerWeb() {
         if (!this.graphics) {
             this.graphics = this.add.graphics();
@@ -137,6 +174,9 @@ export default class RunGame extends Phaser.Scene {
         }
     }
 
+    /***
+     * Update the player character's properties according to player input
+     */
     updatePlayer() {
         let control = {
             left: false,
@@ -185,17 +225,13 @@ export default class RunGame extends Phaser.Scene {
         }
     }
 
-    setupCamera() {
-        let offsetX = -GAMESETTINGS.player.initialX;  // TODO: Only works for initialX = 40
-        let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
 
-        this.cam = this.cameras.main;
-        this.cam.startFollow(
-            this.player,
-            true,
-            1, 0,
-            offsetX, offsetY
-            );
+    // =========================================== FOR DEBUGGING PURPOSES =========================================== //
+
+    createDebugInfo() {
+    }
+
+    updateDebugInfo() {
     }
     /* End of custom methods */
 }

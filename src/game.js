@@ -18,7 +18,7 @@ let config = {
         default: "matter",
         matter: {
             gravity: { x: GAMESETTINGS.gravity.x, y: GAMESETTINGS.gravity.y },
-            debug: true
+            debug: GAMESETTINGS.debug
         }
     },
     scene: [
