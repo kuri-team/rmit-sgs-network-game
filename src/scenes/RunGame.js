@@ -129,8 +129,11 @@ export default class RunGame extends Phaser.Scene {
      * Configure the viewport to follow the player's character
      */
     setupCamera() {
-        let offsetX = -GAMESETTINGS.player.initialX;  // TODO: Only works for initialX = 40
+        let offsetX = -(this.game.scale.width / 2) + GAMESETTINGS.player.initialX;
         let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
+
+        console.log(this.game.scale.width + " " + offsetX);
+        console.log(this.game.scale.height + " " + offsetY);
 
         this.cam = this.cameras.main;
         this.cam.startFollow(
