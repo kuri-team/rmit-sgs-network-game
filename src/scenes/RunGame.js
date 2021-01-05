@@ -130,7 +130,7 @@ export default class RunGame extends Phaser.Scene {
      */
     setupCamera() {
         let offsetX = -(this.game.scale.width / 2) + GAMESETTINGS.player.initialX;
-        let offsetY = GAMESETTINGS.player.initialY / 4;  // TODO: Only works for initialY = 60
+        let offsetY = -(this.game.scale.height / 2) + GAMESETTINGS.player.initialY;  // TODO: Only works for initialY = 60
 
         console.log(this.game.scale.width + " " + offsetX);
         console.log(this.game.scale.height + " " + offsetY);
