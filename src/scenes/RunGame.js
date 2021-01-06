@@ -15,6 +15,9 @@ export default class RunGame extends Phaser.Scene {
     * ---------CUSTOM PROPERTIES------- *
     *************************************
      */
+    /** @type {Phaser.GameObjects.Graphics} **/
+    graphics;
+
     /** @type {string} **/
     debugText;
 
@@ -69,6 +72,8 @@ export default class RunGame extends Phaser.Scene {
 
     create() {
         this.createBackground();
+
+        this.graphics = this.add.graphics();  // For primitive rendering
 
         this.ceilingCollision = this.createCeilingCollision();
         this.ceilingAnchor = this.createCeilingAnchor();
@@ -194,7 +199,7 @@ export default class RunGame extends Phaser.Scene {
      */
     createCeilingCollision() {
         let ceilingX = this.game.scale.width;
-        let ceilingY = -GAMESETTINGS.scaleFactor / 2;
+        let ceilingY = -GAMESETTINGS.scaleFactor * 3;
         let ceilingWidth = this.game.scale.width * 2;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
         let ceilingHeight = GAMESETTINGS.scaleFactor;
 
@@ -214,7 +219,7 @@ export default class RunGame extends Phaser.Scene {
     createCeilingAnchor() {
         /** @type {MatterJS.BodyType} **/
         let anchor = this.matter.add.rectangle(
-            0, -GAMESETTINGS.scaleFactor / 2, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
+            0, -GAMESETTINGS.scaleFactor * 3, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
         );
         anchor.ignoreGravity = true;
         anchor.isStatic = true;
@@ -268,16 +273,16 @@ export default class RunGame extends Phaser.Scene {
      * Show the web on screen if it exists
      */
     renderPlayerWeb() {
-        if (!this.graphics) {
-            this.graphics = this.add.graphics();
-        }
         this.graphics.clear();
 
         if (this.webExist) {
             let lineThickness = GAMESETTINGS.scaleFactor
-            this.matter.world.renderConstraint(
-                this.web, this.graphics,
-                -1, 1, lineThickness, 0, -1, 0
+            let lineColor = GAMESETTINGS.player.webColor;
+
+            this.graphics.lineStyle(lineThickness, lineColor, 1);
+            this.graphics.lineBetween(
+                this.web.pointB.x, this.web.pointB.y - GAMESETTINGS.scaleFactor * 3,
+                this.player.x, this.player.y
             );
         }
     }

@@ -15,7 +15,8 @@ const GAMESETTINGS = {
         },
         initialX: 40 * scaleFactor,
         initialY: 50 * scaleFactor,
-        webOverhead: 10 * scaleFactor
+        webOverhead: 10 * scaleFactor,
+        webColor: 0xffffff
     },
     gameplay: {
         scoreFactor: 500,
@@ -26,7 +27,7 @@ const GAMESETTINGS = {
         y: 0.15 * scaleFactor
     },
     controlSensitivity: 0.00015 * scaleFactor,
-    debug: true
+    debug: false
 };
 
 export default GAMESETTINGS;
