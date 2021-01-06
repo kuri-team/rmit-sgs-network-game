@@ -1,6 +1,7 @@
 import GAMESETTINGS from "./settings.js";
 import PreloadGame from "./scenes/PreloadGame.js";
 import RunGame from "./scenes/RunGame.js";
+import GameOver from "./scenes/GameOver.js";
 
 
 let debug = false;
@@ -30,7 +31,7 @@ let config = {
         }
     },
     scene: [
-        PreloadGame, RunGame
+        PreloadGame, RunGame, GameOver
     ]
 };
 

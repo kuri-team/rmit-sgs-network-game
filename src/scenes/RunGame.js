@@ -27,6 +27,9 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     score;
 
+    /** @type {number} **/
+    health;
+
     /** @type {Phaser.Physics.Matter.Sprite} **/
     ceilingCollision;
 
@@ -61,17 +64,21 @@ export default class RunGame extends Phaser.Scene {
         this.matter.set60Hz();
         this.gameOver = false;
         this.score = 0;
+        this.health = GAMESETTINGS.gameplay.startingHealth;
     }
 
     create() {
         this.createBackground();
+
         this.ceilingCollision = this.createCeilingCollision();
         this.ceilingAnchor = this.createCeilingAnchor();
+
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
+        this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
 
-        // Enable player control via keyboard
+        // Enable control via keyboard
         this.cursor = this.input.keyboard.createCursorKeys();
 
         // Enable camera following
@@ -83,9 +90,15 @@ export default class RunGame extends Phaser.Scene {
 
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
+        this.updateScore();
         this.updateCeilingCollision();
         this.updatePlayer();
         this.renderPlayerWeb();
+
+        // Check for game over
+        if (this.gameOver) {
+            this.scene.start('gameOver', { score: this.score });
+        }
 
         // Update debug information if specified in game settings object
         if (GAMESETTINGS.debug) { this.updateDebugInfo(); }
@@ -132,6 +145,27 @@ export default class RunGame extends Phaser.Scene {
         player.body.vertices[3].x += 3 * GAMESETTINGS.scaleFactor;
 
         return player;
+    }
+
+    /***
+     * Player collision logic
+     * @param {Phaser.Physics.Matter.Matter.Pair} pair
+     * @return {Phaser.Physics.Matter.Matter.Pair}
+     */
+    playerCollideHandler(pair) {
+        if (this.webExist) {
+            this.playerCutWeb(this.web);
+        }
+
+        if (--this.health < 1) {
+            this.matter.pause();
+            this.player.play('player-dead-anim');
+            this.player.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+                this.time.delayedCall(500, () => { this.gameOver = true });
+            }, this);
+        }
+
+        return pair;  // Provide streamlining of data. Read more about pair in MatterJS documentation.
     }
 
     /***
@@ -249,6 +283,16 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
+     * Update the current score (keep the highest score if the player swings backward)
+     */
+    updateScore() {
+        let score = Math.floor((this.player.x - GAMESETTINGS.player.initialX) / GAMESETTINGS.gameplay.scoreFactor);
+        if (this.score < score) {
+            this.score = score;
+        }
+    }
+
+    /***
      * Update the ceiling collision box for indefinite scrolling (from left to right)
      */
     updateCeilingCollision() {
@@ -300,17 +344,11 @@ export default class RunGame extends Phaser.Scene {
                 targetAnchorOffset = playerX;
             }
 
-            try {
-                this.web = this.playerShootWeb(targetAnchorOffset);
-            } catch (TypeError) {
-                console.log("Can't find ceiling anchors! Restarting")
-                this.scene.start('runGame');
-            }  // Restart game TODO: This is only to catch errors! Need replacement later.
+            this.web = this.playerShootWeb(targetAnchorOffset);
         }
     }
 
     // =========================================== FOR DEBUGGING PURPOSES =========================================== //
-
     createDebugInfo() {
         this.debugTextObj = this.add.text(
             GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor, this.debugText, { color: "#0f0" }
@@ -320,6 +358,8 @@ export default class RunGame extends Phaser.Scene {
     updateDebugInfo() {
         this.debugText = "STATS FOR NERDS\n\n"
             + `gameOver = ${this.gameOver}\n`
+            + `score = ${this.score}\n`
+            + `health = ${this.health}\n`
             + '\n'
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`

@@ -17,6 +17,10 @@ const GAMESETTINGS = {
         initialY: 50 * scaleFactor,
         webOverhead: 10 * scaleFactor
     },
+    gameplay: {
+        scoreFactor: 500,
+        startingHealth: 3
+    },
     gravity: {
         x: 0,
         y: 0.15 * scaleFactor
