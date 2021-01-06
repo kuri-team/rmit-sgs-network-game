@@ -11,6 +11,8 @@ export default class PreloadGame extends Phaser.Scene {
         this.loadBackground();
         this.loadEnvironment();
         this.loadPlayer();
+        this.loadSFX();
+        this.loadSoundtrack();
     }
 
     create() {
@@ -57,12 +59,13 @@ export default class PreloadGame extends Phaser.Scene {
         });
     }
 
-    loadSFX() {
-        // To be implemented
+    loadSFX() {  // TODO: convert these files to .mp3 for compatibility with iOS and MacOS
+        this.load.audio('dead-sfx', 'assets/sfx/dead.ogg');
+        this.load.audio('shoot-sfx', 'assets/sfx/shoot.ogg');
     }
 
     loadSoundtrack() {
-        // To be implemented
+        this.load.audio('game-over-audio', 'assets/ost/lose.mp3');
     }
 
     createAnimations() {
