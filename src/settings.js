@@ -19,7 +19,7 @@ const GAMESETTINGS = {
         webColor: 0xffffff
     },
     gameplay: {
-        scoreFactor: 500,
+        scoreFactor: 250,
         startingHealth: 3
     },
     gravity: {
@@ -27,6 +27,7 @@ const GAMESETTINGS = {
         y: 0.15 * scaleFactor
     },
     controlSensitivity: 0.00015 * scaleFactor,
+    gameOverDelay: 500,
     debug: false
 };
 

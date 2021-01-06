@@ -15,6 +15,9 @@ export default class RunGame extends Phaser.Scene {
     * ---------CUSTOM PROPERTIES------- *
     *************************************
      */
+    /** @type {Object}{Phaser.Sound.BaseSound} **/
+    SFX;
+
     /** @type {Phaser.GameObjects.Graphics} **/
     graphics;
 
@@ -63,6 +66,10 @@ export default class RunGame extends Phaser.Scene {
 
 
     init() {
+        this.SFX = {
+            dead: undefined,
+            shot: undefined
+        };
         this.debugText = "";
         this.matter.set60Hz();
         this.gameOver = false;
@@ -71,6 +78,8 @@ export default class RunGame extends Phaser.Scene {
     }
 
     create() {
+        this.createSFX();
+        this.createSoundtrack();
         this.createBackground();
 
         this.graphics = this.add.graphics();  // For primitive rendering
@@ -114,6 +123,15 @@ export default class RunGame extends Phaser.Scene {
     ************************************
     * ----------CUSTOM METHODS-------- *
     ************************************/
+    createSFX() {
+        this.SFX.dead = this.sound.add('dead-sfx');
+        this.SFX.shoot = this.sound.add('shoot-sfx');
+    }
+
+    createSoundtrack() {
+        // TODO: Compose soundtrack for main game
+    }
+
     /***
      * Create the background
      * @returns {Phaser.GameObjects.Image}
@@ -158,6 +176,8 @@ export default class RunGame extends Phaser.Scene {
      * @return {Phaser.Physics.Matter.Matter.Pair}
      */
     playerCollideHandler(pair) {
+        this.SFX.dead.play();
+
         if (this.webExist) {
             this.playerCutWeb(this.web);
         }
@@ -166,7 +186,7 @@ export default class RunGame extends Phaser.Scene {
             this.matter.pause();
             this.player.play('player-dead-anim');
             this.player.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-                this.time.delayedCall(500, () => { this.gameOver = true });
+                this.time.delayedCall(GAMESETTINGS.gameOverDelay, () => { this.gameOver = true });
             }, this);
         }
 
@@ -249,6 +269,8 @@ export default class RunGame extends Phaser.Scene {
      * @returns {MatterJS.ConstraintType}
      */
     playerShootWeb(anchorOffset) {
+        this.SFX.shoot.play();
+
         this.webExist = true;
         let webLength = Math.sqrt(GAMESETTINGS.player.webOverhead ** 2 + this.player.y ** 2);
         let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
