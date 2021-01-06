@@ -38,6 +38,7 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     loadEnvironment() {
+        this.load.image('ceiling', 'assets/sprites/environment/ceiling-anchor.png');
         this.load.spritesheet('booster-health', 'assets/sprites/environment/booster-health.png', {
             frameWidth: 8,
             frameHeight: 10,
