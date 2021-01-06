@@ -15,6 +15,12 @@ export default class RunGame extends Phaser.Scene {
     * ---------CUSTOM PROPERTIES------- *
     *************************************
      */
+    /** @type {Object}{Phaser.Sound.BaseSound} **/
+    SFX;
+
+    /** @type {Phaser.GameObjects.Graphics} **/
+    graphics;
+
     /** @type {string} **/
     debugText;
 
@@ -26,6 +32,9 @@ export default class RunGame extends Phaser.Scene {
 
     /** @type {number} **/
     score;
+
+    /** @type {number} **/
+    health;
 
     /** @type {Phaser.Physics.Matter.Sprite} **/
     ceilingCollision;
@@ -57,21 +66,33 @@ export default class RunGame extends Phaser.Scene {
 
 
     init() {
+        this.SFX = {
+            dead: undefined,
+            shot: undefined
+        };
         this.debugText = "";
         this.matter.set60Hz();
         this.gameOver = false;
         this.score = 0;
+        this.health = GAMESETTINGS.gameplay.startingHealth;
     }
 
     create() {
+        this.createSFX();
+        this.createSoundtrack();
         this.createBackground();
+
+        this.graphics = this.add.graphics();  // For primitive rendering
+
         this.ceilingCollision = this.createCeilingCollision();
         this.ceilingAnchor = this.createCeilingAnchor();
+
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
+        this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
 
-        // Enable player control via keyboard
+        // Enable control via keyboard
         this.cursor = this.input.keyboard.createCursorKeys();
 
         // Enable camera following
@@ -83,9 +104,15 @@ export default class RunGame extends Phaser.Scene {
 
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
+        this.updateScore();
         this.updateCeilingCollision();
         this.updatePlayer();
         this.renderPlayerWeb();
+
+        // Check for game over
+        if (this.gameOver) {
+            this.scene.start('gameOver', { score: this.score });
+        }
 
         // Update debug information if specified in game settings object
         if (GAMESETTINGS.debug) { this.updateDebugInfo(); }
@@ -96,6 +123,15 @@ export default class RunGame extends Phaser.Scene {
     ************************************
     * ----------CUSTOM METHODS-------- *
     ************************************/
+    createSFX() {
+        this.SFX.dead = this.sound.add('dead-sfx');
+        this.SFX.shoot = this.sound.add('shoot-sfx');
+    }
+
+    createSoundtrack() {
+        // TODO: Compose soundtrack for main game
+    }
+
     /***
      * Create the background
      * @returns {Phaser.GameObjects.Image}
@@ -135,6 +171,29 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
+     * Player collision logic
+     * @param {Phaser.Physics.Matter.Matter.Pair} pair
+     * @return {Phaser.Physics.Matter.Matter.Pair}
+     */
+    playerCollideHandler(pair) {
+        this.SFX.dead.play();
+
+        if (this.webExist) {
+            this.playerCutWeb(this.web);
+        }
+
+        if (--this.health < 1) {
+            this.matter.pause();
+            this.player.play('player-dead-anim');
+            this.player.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+                this.time.delayedCall(GAMESETTINGS.gameOverDelay, () => { this.gameOver = true });
+            }, this);
+        }
+
+        return pair;  // Provide streamlining of data. Read more about pair in MatterJS documentation.
+    }
+
+    /***
      * Create a pivot where the player sprite will shoot the spider web from
      * @param {Phaser.Physics.Matter.Sprite} playerObj
      * @returns {MatterJS.BodyType}
@@ -160,7 +219,7 @@ export default class RunGame extends Phaser.Scene {
      */
     createCeilingCollision() {
         let ceilingX = this.game.scale.width;
-        let ceilingY = -GAMESETTINGS.scaleFactor / 2;
+        let ceilingY = -GAMESETTINGS.scaleFactor * 3;
         let ceilingWidth = this.game.scale.width * 2;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
         let ceilingHeight = GAMESETTINGS.scaleFactor;
 
@@ -180,7 +239,7 @@ export default class RunGame extends Phaser.Scene {
     createCeilingAnchor() {
         /** @type {MatterJS.BodyType} **/
         let anchor = this.matter.add.rectangle(
-            0, -GAMESETTINGS.scaleFactor / 2, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
+            0, -GAMESETTINGS.scaleFactor * 3, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
         );
         anchor.ignoreGravity = true;
         anchor.isStatic = true;
@@ -210,6 +269,8 @@ export default class RunGame extends Phaser.Scene {
      * @returns {MatterJS.ConstraintType}
      */
     playerShootWeb(anchorOffset) {
+        this.SFX.shoot.play();
+
         this.webExist = true;
         let webLength = Math.sqrt(GAMESETTINGS.player.webOverhead ** 2 + this.player.y ** 2);
         let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
@@ -234,17 +295,27 @@ export default class RunGame extends Phaser.Scene {
      * Show the web on screen if it exists
      */
     renderPlayerWeb() {
-        if (!this.graphics) {
-            this.graphics = this.add.graphics();
-        }
         this.graphics.clear();
 
         if (this.webExist) {
             let lineThickness = GAMESETTINGS.scaleFactor
-            this.matter.world.renderConstraint(
-                this.web, this.graphics,
-                -1, 1, lineThickness, 0, -1, 0
+            let lineColor = GAMESETTINGS.player.webColor;
+
+            this.graphics.lineStyle(lineThickness, lineColor, 1);
+            this.graphics.lineBetween(
+                this.web.pointB.x, this.web.pointB.y - GAMESETTINGS.scaleFactor * 3,
+                this.player.x, this.player.y
             );
+        }
+    }
+
+    /***
+     * Update the current score (keep the highest score if the player swings backward)
+     */
+    updateScore() {
+        let score = Math.floor((this.player.x - GAMESETTINGS.player.initialX) / GAMESETTINGS.gameplay.scoreFactor);
+        if (this.score < score) {
+            this.score = score;
         }
     }
 
@@ -300,17 +371,11 @@ export default class RunGame extends Phaser.Scene {
                 targetAnchorOffset = playerX;
             }
 
-            try {
-                this.web = this.playerShootWeb(targetAnchorOffset);
-            } catch (TypeError) {
-                console.log("Can't find ceiling anchors! Restarting")
-                this.scene.start('runGame');
-            }  // Restart game TODO: This is only to catch errors! Need replacement later.
+            this.web = this.playerShootWeb(targetAnchorOffset);
         }
     }
 
     // =========================================== FOR DEBUGGING PURPOSES =========================================== //
-
     createDebugInfo() {
         this.debugTextObj = this.add.text(
             GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor, this.debugText, { color: "#0f0" }
@@ -319,10 +384,15 @@ export default class RunGame extends Phaser.Scene {
 
     updateDebugInfo() {
         this.debugText = "STATS FOR NERDS\n\n"
+            + `gameOver = ${this.gameOver}\n`
+            + `score = ${this.score}\n`
+            + `health = ${this.health}\n`
+            + '\n'
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`
             + `webExist = ${this.webExist}\n`
             + `webLength = ${this.web.length}\n`
+            + `ceilingAnchorOffset = ${this.web.pointB.x}\n`
             + '\n'
             + `viewport.scrollX ${this.viewport.scrollX}\n`
             + `viewport.scrollY ${this.viewport.scrollY}\n`
