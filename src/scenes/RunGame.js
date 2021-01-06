@@ -27,8 +27,11 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     score;
 
-    /** @type {[{MatterJS.BodyType}]} **/
-    ceiling;
+    /** @type {Phaser.Physics.Matter.Sprite} **/
+    ceilingCollision;
+
+    /** @type {MatterJS.BodyType} **/
+    ceilingAnchor;
 
     /** @type {Phaser.Physics.Matter.Sprite} **/
     player;
@@ -62,7 +65,8 @@ export default class RunGame extends Phaser.Scene {
 
     create() {
         this.createBackground();
-        this.ceiling = this.createCeilingAnchors();
+        this.ceilingCollision = this.createCeilingCollision();
+        this.ceilingAnchor = this.createCeilingAnchor();
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
@@ -79,6 +83,7 @@ export default class RunGame extends Phaser.Scene {
 
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
+        this.updateCeilingCollision();
         this.updatePlayer();
         this.renderPlayerWeb();
 
@@ -105,7 +110,7 @@ export default class RunGame extends Phaser.Scene {
      * Create a player sprite at the specified xy coordinates
      * @param {number} x
      * @param {number} y
-     * @returns {Phaser.Physics.Matter.Sprite}
+     * @returns {Phaser.Physics.Matter.Sprite && Phaser.GameObjects.GameObject}
      */
     createPlayer(x, y) {
         let player = this.matter.add.sprite(x, y, 'player')
@@ -113,6 +118,7 @@ export default class RunGame extends Phaser.Scene {
             .setOrigin(0.5, 0)
             .setMass(GAMESETTINGS.player.mass);
         player.body.force = GAMESETTINGS.player.initialForce;
+        player.body.collideWorldBounds = true;
 
         // Readjust collision box yOffset
         for (let i = 0; i < player.body.vertices.length; i++) {
@@ -149,21 +155,37 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
-     * Create and return an array of the ceiling anchors
-     * @returns {[{MatterJS.BodyType}]}
+     * Create the ceiling collision box
+     * @returns {Phaser.Physics.Matter.Sprite}
      */
-    createCeilingAnchors() {
-        let anchors = [];
-        for (let i = 0; i < this.game.scale.width; i++) {
-            /** @type {MatterJS.BodyType} **/
-            let anchor = this.matter.add.rectangle(
-                i, -GAMESETTINGS.scaleFactor / 2, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
-            );
-            anchor.ignoreGravity = true;
-            anchor.isStatic = true;
-            anchors.push(anchor);
-        }
-        return anchors;
+    createCeilingCollision() {
+        let ceilingX = this.game.scale.width;
+        let ceilingY = -GAMESETTINGS.scaleFactor / 2;
+        let ceilingWidth = this.game.scale.width * 2;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
+        let ceilingHeight = GAMESETTINGS.scaleFactor;
+
+        /** @type {Phaser.Physics.Matter.Sprite} **/
+        let ceiling = this.matter.add.sprite(ceilingX, ceilingY, 'ceiling');
+        ceiling.setScale(ceilingWidth, ceilingHeight);
+        ceiling.body.ignoreGravity = true;
+        ceiling.body.isStatic = true;
+
+        return ceiling;
+    }
+
+    /***
+     * Create and return a ceiling anchor
+     * @returns {MatterJS.BodyType}
+     */
+    createCeilingAnchor() {
+        /** @type {MatterJS.BodyType} **/
+        let anchor = this.matter.add.rectangle(
+            0, -GAMESETTINGS.scaleFactor / 2, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
+        );
+        anchor.ignoreGravity = true;
+        anchor.isStatic = true;
+
+        return anchor;
     }
 
     /***
@@ -184,12 +206,18 @@ export default class RunGame extends Phaser.Scene {
 
     /***
      * Create a player web (type MatterJS constraint) between the player character and a specified point on the ceiling
-     * @param {number} targetAnchorIdx
+     * @param {number} anchorOffset
      * @returns {MatterJS.ConstraintType}
      */
-    playerShootWeb(targetAnchorIdx) {
+    playerShootWeb(anchorOffset) {
         this.webExist = true;
-        return this.matter.add.constraint(this.playerPivot, this.ceiling[targetAnchorIdx]);
+        let webLength = Math.sqrt(GAMESETTINGS.player.webOverhead ** 2 + this.player.y ** 2);
+        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
+        webObj.pointB = {
+            x: anchorOffset,
+            y: 0
+        };
+        return webObj;
     }
 
     /***
@@ -216,8 +244,18 @@ export default class RunGame extends Phaser.Scene {
             this.matter.world.renderConstraint(
                 this.web, this.graphics,
                 -1, 1, lineThickness, 0, -1, 0
-        );
+            );
         }
+    }
+
+    /***
+     * Update the ceiling collision box for indefinite scrolling (from left to right)
+     */
+    updateCeilingCollision() {
+        this.ceilingCollision.setPosition(
+            this.viewport.scrollX + this.game.scale.width,
+            this.ceilingCollision.y
+        );
     }
 
     /***
@@ -252,18 +290,18 @@ export default class RunGame extends Phaser.Scene {
             this.playerCutWeb(this.web);
         } else if (control.toggleWeb && !this.webExist) {  // Shoot web
             let playerX = Math.floor(this.player.x);
-            let targetAnchorIdx;  // Set at undefined to catch errors when targetAnchorIdx is not set
+            let targetAnchorOffset;  // Set at undefined to catch errors when targetAnchorIdx is not set
 
             if (this.player.body.velocity.x > 0) {
-                targetAnchorIdx = playerX + GAMESETTINGS.player.webOverhead;
+                targetAnchorOffset = playerX + GAMESETTINGS.player.webOverhead;
             } else if (this.player.body.velocity.x < 0) {
-                targetAnchorIdx = playerX - GAMESETTINGS.player.webOverhead;
+                targetAnchorOffset = playerX - GAMESETTINGS.player.webOverhead;
             } else {
-                targetAnchorIdx = playerX;
+                targetAnchorOffset = playerX;
             }
 
             try {
-                this.web = this.playerShootWeb(targetAnchorIdx);
+                this.web = this.playerShootWeb(targetAnchorOffset);
             } catch (TypeError) {
                 console.log("Can't find ceiling anchors! Restarting")
                 this.scene.start('runGame');
@@ -284,6 +322,7 @@ export default class RunGame extends Phaser.Scene {
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`
             + `webExist = ${this.webExist}\n`
+            + `webLength = ${this.web.length}\n`
             + '\n'
             + `viewport.scrollX ${this.viewport.scrollX}\n`
             + `viewport.scrollY ${this.viewport.scrollY}\n`
