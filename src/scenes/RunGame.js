@@ -319,10 +319,13 @@ export default class RunGame extends Phaser.Scene {
 
     updateDebugInfo() {
         this.debugText = "STATS FOR NERDS\n\n"
+            + `gameOver = ${this.gameOver}\n`
+            + '\n'
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`
             + `webExist = ${this.webExist}\n`
             + `webLength = ${this.web.length}\n`
+            + `ceilingAnchorOffset = ${this.web.pointB.x}\n`
             + '\n'
             + `viewport.scrollX ${this.viewport.scrollX}\n`
             + `viewport.scrollY ${this.viewport.scrollY}\n`
