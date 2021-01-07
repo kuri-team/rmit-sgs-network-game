@@ -1,3 +1,6 @@
+import GAMESETTINGS from "../settings.js";
+
+
 /***
  * Assets management class
  */
@@ -36,11 +39,16 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     loadBackground() {
-        this.load.image('background', 'assets/sprites/background/debug-bg.png');
+        if (GAMESETTINGS.debug) {
+            this.load.image('background', 'assets/sprites/background/debug-bg.png');
+        } else {
+            this.load.image('background', 'assets/sprites/background/background.png');
+        }
     }
 
     loadEnvironment() {
-        this.load.image('ceiling', 'assets/sprites/environment/ceiling-anchor.png');
+        this.load.image('bound', 'assets/sprites/environment/bound.png');
+        this.load.image('bound-left', 'assets/sprites/environment/bound-left.png');
         this.load.spritesheet('booster-health', 'assets/sprites/environment/booster-health.png', {
             frameWidth: 8,
             frameHeight: 10,

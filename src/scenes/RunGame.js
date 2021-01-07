@@ -42,8 +42,8 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     health;
 
-    /** @type {Phaser.Physics.Matter.Sprite} **/
-    ceilingCollision;
+    /** @type {[{Phaser.Physics.Matter.Sprite}]} **/
+    worldBounds;
 
     /** @type {MatterJS.BodyType} **/
     ceilingAnchor;
@@ -91,7 +91,7 @@ export default class RunGame extends Phaser.Scene {
 
         this.graphics = this.add.graphics();  // For primitive rendering
 
-        this.ceilingCollision = this.createCeilingCollision();
+        this.worldBounds = this.createWorldBounds();
         this.ceilingAnchor = this.createCeilingAnchor();
 
         this.player = this.createPlayer(GAMESETTINGS.player.initialX, GAMESETTINGS.player.initialY);
@@ -115,7 +115,7 @@ export default class RunGame extends Phaser.Scene {
     update(time, delta) {
         super.update(time, delta);  // Default code suggestion, don't know why it works yet, maybe consult Phaser documentation?
         this.updateScore();
-        this.updateCeilingCollision();
+        this.updateWorldBounds();
         this.updatePlayer();
         this.renderPlayerWeb();
 
@@ -164,7 +164,7 @@ export default class RunGame extends Phaser.Scene {
             .setOrigin(0.5, 0)
             .setMass(GAMESETTINGS.player.mass);
         player.body.force = GAMESETTINGS.player.initialForce;
-        player.body.collideWorldBounds = true;
+        player.body.restitution = 1;  // Enable bouncing
 
         // Readjust collision box yOffset
         for (let i = 0; i < player.body.vertices.length; i++) {
@@ -225,21 +225,53 @@ export default class RunGame extends Phaser.Scene {
 
     /***
      * Create the ceiling collision box
-     * @returns {Phaser.Physics.Matter.Sprite}
+     * @returns {[{Phaser.Physics.Matter.Sprite}]}
      */
-    createCeilingCollision() {
+    createWorldBounds() {
+        let bounds = []
+
+        // Set up the ceiling
         let ceilingX = this.game.scale.width;
         let ceilingY = -GAMESETTINGS.scaleFactor * 3;
         let ceilingWidth = this.game.scale.width * 2;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
         let ceilingHeight = GAMESETTINGS.scaleFactor;
 
         /** @type {Phaser.Physics.Matter.Sprite} **/
-        let ceiling = this.matter.add.sprite(ceilingX, ceilingY, 'ceiling');
+        let ceiling = this.matter.add.sprite(ceilingX, ceilingY, 'bound');
         ceiling.setScale(ceilingWidth, ceilingHeight);
         ceiling.body.ignoreGravity = true;
         ceiling.body.isStatic = true;
 
-        return ceiling;
+        // Set up the floor
+        let floorX = ceilingX
+        let floorY = this.game.scale.height - ceilingY;
+        let floorWidth = ceilingWidth
+        let floorHeight = ceilingHeight;
+
+        /** @type {Phaser.Physics.Matter.Sprite} **/
+        let floor = this.matter.add.sprite(floorX, floorY, 'bound');
+        floor.setScale(floorWidth, floorHeight);
+        floor.body.ignoreGravity = true;
+        floor.body.isStatic = true;
+
+        // Set up the left wall
+        let wallLeftX = -this.game.scale.width / 2;
+        let wallLeftY = this.game.scale.height / 2;
+        let wallLeftWidth = GAMESETTINGS.scaleFactor;
+        let wallLeftHeight = GAMESETTINGS.scaleFactor;
+
+        /** @type {Phaser.Physics.Matter.Sprite} **/
+        let wallLeft = this.matter.add.sprite(wallLeftX, wallLeftY, 'bound-left');
+        wallLeft.setScale(wallLeftWidth, wallLeftHeight);
+        wallLeft.body.ignoreGravity = true;
+        wallLeft.body.isStatic = true;
+        wallLeft.alpha = 0.1;
+
+        // Return an array of sprites
+        bounds.push(ceiling);
+        bounds.push(floor);
+        bounds.push(wallLeft);
+        return bounds;
     }
 
     /***
@@ -347,13 +379,20 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
-     * Update the ceiling collision box for indefinite scrolling (from left to right)
+     * Update the world bounds collision boxes for indefinite scrolling (from left to right)
      */
-    updateCeilingCollision() {
-        this.ceilingCollision.setPosition(
-            this.viewport.scrollX + this.game.scale.width,
-            this.ceilingCollision.y
-        );
+    updateWorldBounds() {
+        let targetX = this.viewport.scrollX - this.game.scale.width / 2;
+        let bufferZone = GAMESETTINGS.player.initialX * 1.5;
+
+        for (let i = 0; i < this.worldBounds.length; i++) {
+            if (targetX > this.worldBounds[i].x + bufferZone) {
+                this.worldBounds[i].setPosition(
+                    targetX,
+                    this.worldBounds[i].y
+                );
+            }
+        }
     }
 
     /***
@@ -405,7 +444,7 @@ export default class RunGame extends Phaser.Scene {
     // =========================================== FOR DEBUGGING PURPOSES =========================================== //
     createDebugInfo() {
         this.debugTextObj = this.add.text(
-            GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor, this.debugText, { color: "#0f0" }
+            GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor, this.debugText, { color: "#cf00c4" }
         ).setScrollFactor(0);
     }
 
@@ -421,8 +460,15 @@ export default class RunGame extends Phaser.Scene {
             + `webLength = ${this.web.length}\n`
             + `ceilingAnchorOffset = ${this.web.pointB.x}\n`
             + '\n'
-            + `viewport.scrollX ${this.viewport.scrollX}\n`
-            + `viewport.scrollY ${this.viewport.scrollY}\n`
+            + `viewport.scrollX = ${this.viewport.scrollX}\n`
+            + `viewport.scrollY = ${this.viewport.scrollY}\n`
+            + '\n'
+            + `worldBounds[0].x = ${this.worldBounds[0].x}\n`
+            + `worldBounds[0].y = ${this.worldBounds[0].y}\n`
+            + `worldBounds[1].x = ${this.worldBounds[1].x}\n`
+            + `worldBounds[1].y = ${this.worldBounds[1].y}\n`
+            + `worldBounds[2].x = ${this.worldBounds[2].x}\n`
+            + `worldBounds[2].y = ${this.worldBounds[2].y}\n`
         ;
         this.debugTextObj.text = this.debugText;
     }
