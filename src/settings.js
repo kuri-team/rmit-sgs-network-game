@@ -19,7 +19,7 @@ const GAMESETTINGS = {
         webColor: 0xffffff
     },
     gameplay: {
-Did        scoreFactor: 500,
+        scoreFactor: 500,
         startingHealth: 3
     },
     gravity: {
