@@ -28,10 +28,16 @@ export default class RunGame extends Phaser.Scene {
     debugTextObj;
 
     /** @type {Boolean} **/
+    justStarted;
+
+    /** @type {Boolean} **/
     gameOver;
 
     /** @type {number} **/
     score;
+
+    /** @type {Phaser.GameObjects.Text} **/
+    scoreText;
 
     /** @type {number} **/
     health;
@@ -71,10 +77,11 @@ export default class RunGame extends Phaser.Scene {
             shot: undefined
         };
         this.debugText = "";
-        this.matter.set60Hz();
+        this.justStarted = true;
         this.gameOver = false;
         this.score = 0;
         this.health = GAMESETTINGS.gameplay.startingHealth;
+        this.matter.set60Hz();
     }
 
     create() {
@@ -91,6 +98,9 @@ export default class RunGame extends Phaser.Scene {
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX);
         this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
+
+        // UI
+        this.createUI();
 
         // Enable control via keyboard
         this.cursor = this.input.keyboard.createCursorKeys();
@@ -248,6 +258,18 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
+     * Create the user interface to display current score and health
+     */
+    createUI() {
+        this.scoreText = this.add.text(
+            GAMESETTINGS.scaleFactor * 7,
+            GAMESETTINGS.scaleFactor * 5,
+            `${this.score}`,
+            { color: '#000', fontFamily: 'Arial', fontStyle: 'bold', fontSize: GAMESETTINGS.scaleFactor * 8 }
+        ).setScrollFactor(0, 0);
+    }
+
+    /***
      * Configure the viewport to follow the player's character
      */
     setupCamera() {
@@ -269,7 +291,11 @@ export default class RunGame extends Phaser.Scene {
      * @returns {MatterJS.ConstraintType}
      */
     playerShootWeb(anchorOffset) {
-        this.SFX.shoot.play();
+        if (this.justStarted) {
+            this.justStarted = false;
+        } else {
+            this.SFX.shoot.play();
+        }
 
         this.webExist = true;
         let webLength = Math.sqrt(GAMESETTINGS.player.webOverhead ** 2 + this.player.y ** 2);
@@ -316,6 +342,7 @@ export default class RunGame extends Phaser.Scene {
         let score = Math.floor((this.player.x - GAMESETTINGS.player.initialX) / GAMESETTINGS.gameplay.scoreFactor);
         if (this.score < score) {
             this.score = score;
+            this.scoreText.text = `${this.score}`;
         }
     }
 
@@ -351,11 +378,11 @@ export default class RunGame extends Phaser.Scene {
         ) { control.toggleWeb = true; }
 
         // -------------------------------- Apply input to player character -------------------------------- //
-        if (control.left) {  // Left movement
-            this.matter.applyForce(this.player.body, { x: -GAMESETTINGS.controlSensitivity, y: 0 });
+        if (control.left) {  // Left movement (with scaling difficulty)
+            this.matter.applyForce(this.player.body, { x: -GAMESETTINGS.controlSensitivity * (this.score / 20 + 1), y: 0 });
         }
-        if (control.right) {  // Right movement
-            this.matter.applyForce(this.player.body, { x: GAMESETTINGS.controlSensitivity, y: 0 });
+        if (control.right) {  // Right movement (with scaling difficulty)
+            this.matter.applyForce(this.player.body, { x: GAMESETTINGS.controlSensitivity * (this.score / 20 + 1), y: 0 });
         }
         if (control.toggleWeb && this.webExist) {  // Cut web
             this.playerCutWeb(this.web);
