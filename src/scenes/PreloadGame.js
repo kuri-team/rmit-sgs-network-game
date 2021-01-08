@@ -10,6 +10,7 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     preload() {
+        this.load.script('webFont', 'src/lib/webfont.js');  // Enable custom fonts handling
         this.loadUserInterface();
         this.loadBackground();
         this.loadEnvironment();

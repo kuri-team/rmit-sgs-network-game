@@ -12,6 +12,22 @@ if (GAMESETTINGS.debug) {
     }
 }
 
+
+let customFonts = [
+    'Kenney Blocks',
+    'Kenney Future',
+    'Kenney Future Narrow',
+    'Kenney High',
+    'Kenney High Square',
+    'Kenney Mini',
+    'Kenney Mini Square',
+    'Kenney Pixel',
+    'Kenney Pixel Square',
+    'Kenney Rocket',
+    'Kenney Rocket Square'
+];
+
+
 let config = {
     backgroundColor: GAMESETTINGS.backgroundColor,
     pixelArt: true,
@@ -41,4 +57,5 @@ let game = new Phaser.Game(config);
 export default {
     game,
     config,
+    customFonts
 };
