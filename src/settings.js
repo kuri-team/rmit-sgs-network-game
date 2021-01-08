@@ -4,6 +4,7 @@ const scaleFactor = 8
  * IMPORTANT: Only adjust game balance via this object
  * ***/
 const GAMESETTINGS = {
+    backgroundColor: '#c2c2c2',
     nativeWidth: 160,
     nativeHeight: 90,
     scaleFactor: scaleFactor,
@@ -16,7 +17,7 @@ const GAMESETTINGS = {
         initialX: 40 * scaleFactor,
         initialY: 50 * scaleFactor,
         webOverhead: 10 * scaleFactor,
-        webColor: 0xffffff
+        webColor: 0xffffff  // White
     },
     gameplay: {
         scoreFactor: 500,

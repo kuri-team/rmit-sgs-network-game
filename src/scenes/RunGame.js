@@ -1,4 +1,5 @@
 import GAMESETTINGS from "../settings.js";
+import game from "../game.js";
 
 
 /***
@@ -41,6 +42,9 @@ export default class RunGame extends Phaser.Scene {
 
     /** @type {number} **/
     health;
+
+    /** @type {Phaser.GameObjects.Text} **/
+    healthText;
 
     /** @type {[{Phaser.Physics.Matter.Sprite}]} **/
     worldBounds;
@@ -118,6 +122,7 @@ export default class RunGame extends Phaser.Scene {
         this.updateWorldBounds();
         this.updatePlayer();
         this.renderPlayerWeb();
+        this.updateHealth();
 
         // Check for game over
         if (this.gameOver) {
@@ -198,6 +203,9 @@ export default class RunGame extends Phaser.Scene {
             this.player.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
                 this.time.delayedCall(GAMESETTINGS.gameOverDelay, () => { this.gameOver = true });
             }, this);
+        } else {
+            this.player.play('player-hurt-anim');
+            this.player.setTexture('player');
         }
 
         return pair;  // Provide streamlining of data. Read more about pair in MatterJS documentation.
@@ -231,9 +239,9 @@ export default class RunGame extends Phaser.Scene {
         let bounds = []
 
         // Set up the ceiling
-        let ceilingX = this.game.scale.width;
+        let ceilingX = 0;
         let ceilingY = -GAMESETTINGS.scaleFactor * 3;
-        let ceilingWidth = this.game.scale.width * 2;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
+        let ceilingWidth = this.game.scale.width * 10;  // For indefinite scrolling implementation. See function: updateCeilingCollision()
         let ceilingHeight = GAMESETTINGS.scaleFactor;
 
         /** @type {Phaser.Physics.Matter.Sprite} **/
@@ -265,7 +273,6 @@ export default class RunGame extends Phaser.Scene {
         wallLeft.setScale(wallLeftWidth, wallLeftHeight);
         wallLeft.body.ignoreGravity = true;
         wallLeft.body.isStatic = true;
-        wallLeft.alpha = 0.1;
 
         // Return an array of sprites
         bounds.push(ceiling);
@@ -293,12 +300,40 @@ export default class RunGame extends Phaser.Scene {
      * Create the user interface to display current score and health
      */
     createUI() {
-        this.scoreText = this.add.text(
-            GAMESETTINGS.scaleFactor * 7,
-            GAMESETTINGS.scaleFactor * 5,
-            `${this.score}`,
-            { color: '#000', fontFamily: 'Arial', fontStyle: 'bold', fontSize: GAMESETTINGS.scaleFactor * 8 }
-        ).setScrollFactor(0, 0);
+        WebFont.load({
+            custom: {
+                families: game.customFonts
+            },
+            active: () => {
+                this.scoreText = this.add.text(
+                    GAMESETTINGS.scaleFactor * 8,
+                    GAMESETTINGS.scaleFactor * 4,
+                    `${this.score}`,
+                    {
+                        color: '#919191',
+                        fontFamily: 'Kenney Mini Square, Arial, sans-serif',
+                        fontStyle: 'bold',
+                        fontSize: GAMESETTINGS.scaleFactor * 10
+                    }
+                )
+                    .setScrollFactor(0, 0)
+                    .setBlendMode(Phaser.BlendModes.ADD);
+
+                this.healthText = this.add.text(
+                    GAMESETTINGS.scaleFactor * 8,
+                    this.game.scale.height - GAMESETTINGS.scaleFactor * 12,
+                    '',
+                    {
+                        color: '#b30000',
+                        fontFamily: 'Kenney Mini Square, Arial, sans-serif',
+                        fontStyle: 'bold',
+                        fontSize: GAMESETTINGS.scaleFactor * 10,
+                    }
+                )
+                    .setScrollFactor(0, 0)
+                    .setBlendMode(Phaser.BlendModes.NORMAL);
+            }
+        });
     }
 
     /***
@@ -375,6 +410,19 @@ export default class RunGame extends Phaser.Scene {
         if (this.score < score) {
             this.score = score;
             this.scoreText.text = `${this.score}`;
+        }
+    }
+
+    updateHealth() {
+        let healthTextValue = '';
+        for (let i = 0; i < this.health; i++) {
+            healthTextValue += '*';
+        }
+
+        if (this.healthText !== undefined) {
+            try {
+                this.healthText.text = healthTextValue;
+            } catch (TypeError) {}
         }
     }
 

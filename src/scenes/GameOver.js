@@ -1,3 +1,6 @@
+import game from "../game.js";
+
+
 /***
  * Game Over screen
  */
@@ -17,9 +20,25 @@ export default class GameOver extends Phaser.Scene {
         let clickSFX = this.sound.add('shoot-sfx');
         this.sound.add('game-over-audio').play();
 
-        this.add.text(20, 20, `Game Over. Score: ${data.score}`, { fontSize: 90, fontFamily: 'Arial', backgroundColor: '#000' });
-        this.restart = this.add.text(20, 150, 'Restart', { fontSize: 90, fontFamily: 'Arial', backgroundColor: '#000' });
-        this.restart.setInteractive();
+        WebFont.load({
+            custom: {
+                families: game.customFonts
+            },
+            active: () => {
+                this.add.text(50, 20, `Game Over\nScore: ${data.score}`, {
+                    fontSize: 120, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#000', fontStyle: 'bold'
+                });
+                this.restart = this.add.text(50, this.game.scale.height - 160, 'Restart', {
+                    fontSize: 120, fontFamily: 'Kenney High Square, Arial, sans-serif', backgroundColor: '#000', fontStyle: 'bold', padding: {
+                        left: 20,
+                        right: 10,
+                        top: 0,
+                        bottom: 10
+                    }
+                }).setInteractive();
+            }
+        });
+
         this.input.on('gameobjectdown', () => {
             clickSFX.play();
             this.scene.start('runGame')
