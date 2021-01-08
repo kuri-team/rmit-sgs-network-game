@@ -13,7 +13,7 @@ if (GAMESETTINGS.debug) {
 }
 
 let config = {
-    backgroundColor: "#c2c2c2",
+    backgroundColor: GAMESETTINGS.backgroundColor,
     pixelArt: true,
     type: Phaser.AUTO,
     scale: {
