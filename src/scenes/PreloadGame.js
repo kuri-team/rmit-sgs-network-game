@@ -10,6 +10,7 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     preload() {
+        this.load.script('webFont', 'src/lib/webfont.js');  // Enable custom fonts handling
         this.loadUserInterface();
         this.loadBackground();
         this.loadEnvironment();
@@ -65,6 +66,12 @@ export default class PreloadGame extends Phaser.Scene {
             startFrame: 0,
             endFrame: 4
         });
+        this.load.spritesheet('player-hurt', 'assets/sprites/player/player-hurt.png', {
+            frameWidth: 13,
+            frameHeight: 10,
+            startFrame: 0,
+            endFrame: 4
+        });
     }
 
     loadSFX() {  // TODO: convert these files to .mp3 for compatibility with iOS and MacOS
@@ -86,6 +93,15 @@ export default class PreloadGame extends Phaser.Scene {
             frameRate: 20,
             repeat: 0,
             hideOnComplete: true
+        });
+        this.anims.create({
+            key: 'player-hurt-anim',
+            frames: this.anims.generateFrameNumbers('player-hurt', {
+                start: 0,
+                end: 4
+            }),
+            frameRate: 20,
+            repeat: 0,
         });
         this.anims.create({
             key: 'booster-health-anim',
