@@ -52,7 +52,7 @@ export default class RunGame extends Phaser.Scene {
     /** @type {MatterJS.BodyType} **/
     ceilingAnchor;
 
-    /** @type [{Phaser.Physics.Matter.Image}][] **/
+    /** @type {Phaser.Physics.Matter.Image[]}[] **/
     obstacles;
 
     /** @type {number} **/
@@ -113,7 +113,7 @@ export default class RunGame extends Phaser.Scene {
 
         this.player = this.createPlayer(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
         this.playerPivot = this.createPlayerPivot(this.player);
-        this.web = this.playerShootWeb(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor);
+        this.web = this.playerShootWeb(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, 0);
         this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
 
         // UI
@@ -152,11 +152,17 @@ export default class RunGame extends Phaser.Scene {
     ************************************
     * ----------CUSTOM METHODS-------- *
     ************************************/
+    /***
+     * Create the SFX
+     */
     createSFX() {
         this.SFX.dead = this.sound.add('dead-sfx');
         this.SFX.shoot = this.sound.add('shoot-sfx');
     }
 
+    /***
+     * Create the soundtrack
+     */
     createSoundtrack() {
         // TODO: Compose soundtrack for main game
     }
@@ -171,6 +177,12 @@ export default class RunGame extends Phaser.Scene {
             .setScrollFactor(1, 1);
     }
 
+    /***
+     * Generate a random pair of Y coordinates for use of Obstacles generation
+     * @param {number} minGap
+     * @param {number} maxGap
+     * @return {{y1: number, y2: number}}
+     */
     genRandomObstacleY(minGap, maxGap) {
         let result = {
             y1: 0,
@@ -225,7 +237,7 @@ export default class RunGame extends Phaser.Scene {
      * Create a player sprite at the specified xy coordinates
      * @param {number} x
      * @param {number} y
-     * @returns {Phaser.Physics.Matter.Sprite && Phaser.GameObjects.GameObject}
+     * @returns {Phaser.Physics.Matter.Sprite || Phaser.GameObjects.GameObject}
      */
     createPlayer(x, y) {
         let player = this.matter.add.sprite(x, y, 'player')
@@ -418,10 +430,11 @@ export default class RunGame extends Phaser.Scene {
 
     /***
      * Create a player web (type MatterJS constraint) between the player character and a specified point on the ceiling
-     * @param {number} anchorOffset
+     * @param {number} anchorOffsetX
+     * @param {number} anchorOffsetY
      * @returns {MatterJS.ConstraintType}
      */
-    playerShootWeb(anchorOffset) {
+    playerShootWeb(anchorOffsetX, anchorOffsetY) {
         if (this.justStarted) {
             this.justStarted = false;
         } else {
@@ -429,11 +442,11 @@ export default class RunGame extends Phaser.Scene {
         }
 
         this.webExist = true;
-        let webLength = Math.sqrt((GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor) ** 2 + this.player.y ** 2);
+        let webLength = Math.sqrt((GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor) ** 2 + (this.player.y - anchorOffsetY) ** 2);
         let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
         webObj.pointB = {
-            x: anchorOffset,
-            y: 0
+            x: anchorOffsetX,
+            y: anchorOffsetY
         };
         return webObj;
     }
@@ -485,6 +498,9 @@ export default class RunGame extends Phaser.Scene {
         }
     }
 
+    /***
+     * Update the health UI
+     */
     updateHealth() {
         let healthTextValue = '';
         for (let i = 0; i < this.health; i++) {
@@ -515,9 +531,12 @@ export default class RunGame extends Phaser.Scene {
         }
     }
 
+    /***
+     * Endless obstacles generation
+     */
     updateObstacles() {
         for (let i = 0; i < this.obstacles.length; i++) {
-            if (this.obstacles[i][0].x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor < this.viewport.scrollX) {
+            if (this.obstacles[i][0].body.vertices[0].x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor < this.viewport.scrollX) {
                 // Find the rightmost obstacle
                 /** @type {Phaser.Physics.Matter.Image} **/
                 let rightmostObstacle = this.obstacles[0][0];
@@ -539,6 +558,21 @@ export default class RunGame extends Phaser.Scene {
                 );
             }
         }
+    }
+
+    /***
+     * Return the ceiling obstacle above the player with specified x offset
+     * @param xOffset
+     * @return {Phaser.Physics.Matter.Image}
+     */
+    getObstacleAbovePlayer(xOffset) {
+        let result;
+        for (let i = 0; i < this.obstacles.length; i++) {
+            if (this.obstacles[i][0].body.vertices[0].x <= this.player.x + xOffset) {
+                result = this.obstacles[i][0];
+            }
+        }
+        return result;
     }
 
     /***
@@ -573,17 +607,26 @@ export default class RunGame extends Phaser.Scene {
             this.playerCutWeb(this.web);
         } else if (control.toggleWeb && !this.webExist) {  // Shoot web
             let playerX = Math.floor(this.player.x);
-            let targetAnchorOffset;  // Set at undefined to catch errors when targetAnchorIdx is not set
+            let targetAnchorOffsetX;
+            let targetAnchorOffsetY = 0;
+            let obstacleAbovePlayer;
 
+            // Calculate targetAnchorOffsetX and targetAnchorOffsetY
             if (this.player.body.velocity.x > 0) {
-                targetAnchorOffset = playerX + GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
+                targetAnchorOffsetX = playerX + GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
+                obstacleAbovePlayer = this.getObstacleAbovePlayer(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             } else if (this.player.body.velocity.x < 0) {
-                targetAnchorOffset = playerX - GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
+                targetAnchorOffsetX = playerX - GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
+                obstacleAbovePlayer = this.getObstacleAbovePlayer(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             } else {
-                targetAnchorOffset = playerX;
+                targetAnchorOffsetX = playerX;
+                obstacleAbovePlayer = this.getObstacleAbovePlayer(0);
+            }
+            if (obstacleAbovePlayer !== undefined) {
+                targetAnchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + 30;  // TODO: +30px is a temporary fix for the y-offset bug. Need change here!
             }
 
-            this.web = this.playerShootWeb(targetAnchorOffset);
+            this.web = this.playerShootWeb(targetAnchorOffsetX, targetAnchorOffsetY);
         }
     }
 

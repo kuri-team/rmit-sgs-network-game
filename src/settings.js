@@ -24,7 +24,7 @@ const GAMESETTINGS = {
         initialSafeZone: 0,  // The initial zone where no obstacles will be generated
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
-        minimumGap: 50,
+        minimumGap: 64,
         maximumGap: 90
     },
     gravity: {
