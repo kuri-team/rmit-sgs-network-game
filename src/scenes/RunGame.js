@@ -222,12 +222,6 @@ export default class RunGame extends Phaser.Scene {
             obstacle1.setPosition(obstacle1.x + obstacle1.displayWidth / 2, obstacle1.y - obstacle1.displayHeight / 2);
             obstacle2.setPosition(obstacle2.x + obstacle2.displayWidth / 2, obstacle2.y + obstacle2.displayHeight / 2);
 
-            // For debug purposes
-            if (GAMESETTINGS.debug) {
-                obstacle1.setTintFill(0xffffff - i * (0xffffff / GAMESETTINGS.gameplay.obstacleOverhead));
-                obstacle2.setTintFill(0xffffff - i * (0xffffff / GAMESETTINGS.gameplay.obstacleOverhead));
-            }
-
             // Append them to the obstacles data arrays
             this.obstacles.push([obstacle1, obstacle2]);
         }
