@@ -19,11 +19,12 @@ const GAMESETTINGS = {
     },
     gameplay: {
         scoreFactor: 1000,
+        scalingDifficultyFactor: 2,  // Cannot be larger than maximumGap
         startingHealth: 3,
-        initialSafeZone: 160,  // The initial zone where no obstacles will be generated
+        initialSafeZone: 0,  // The initial zone where no obstacles will be generated
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
-        distanceBetweenObstacles: 32,  // TODO: Find out why 32 works?
-        minimumGap: 48,
+        distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
+        minimumGap: 50,
         maximumGap: 90
     },
     gravity: {
