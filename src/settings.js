@@ -2,7 +2,7 @@
  * IMPORTANT: Only adjust game balance via this object
  * ***/
 const GAMESETTINGS = {
-    backgroundColor: '#c2c2c2',
+    backgroundColor: '#8f8f8f',
     nativeWidth: 160,
     nativeHeight: 90,
     scaleFactor: 10,  // Scale the pixel art sprites up for smoother graphics

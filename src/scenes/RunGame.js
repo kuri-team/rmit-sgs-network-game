@@ -120,6 +120,8 @@ export default class RunGame extends Phaser.Scene {
         this.web = this.playerShootWeb(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, 0);
         this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
 
+        this.createFilterFX();
+
         // UI
         this.createUI();
 
@@ -176,9 +178,10 @@ export default class RunGame extends Phaser.Scene {
      * @returns {Phaser.GameObjects.Image}
      */
     createBackground() {
-        return this.add.image(this.game.scale.width / 2, this.game.scale.height / 2, 'background')
+        return this.add.image(0, 0, 'background')
             .setScale(GAMESETTINGS.scaleFactor)
-            .setScrollFactor(1, 1);
+            .setScrollFactor(1, 1)
+            .setOrigin(0, 0);
     }
 
     /***
@@ -368,6 +371,18 @@ export default class RunGame extends Phaser.Scene {
         anchor.isStatic = true;
 
         return anchor;
+    }
+
+    createFilterFX() {
+        return this.add.sprite(
+            GAMESETTINGS.nativeWidth / 2 * GAMESETTINGS.scaleFactor,
+            GAMESETTINGS.nativeHeight / 2 * GAMESETTINGS.scaleFactor,
+            'vignette')
+            .setScale(GAMESETTINGS.scaleFactor)
+            .setAlpha(0.05)
+            .setBlendMode(Phaser.BlendModes.ADD)
+            .setScrollFactor(0, 0)
+            .play('vignette-anim');
     }
 
     /***
