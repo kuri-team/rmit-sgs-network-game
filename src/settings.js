@@ -25,7 +25,7 @@ const GAMESETTINGS = {
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 64,
-        maximumGap: 90
+        maximumGap: 100
     },
     gravity: {
         x: 0,
