@@ -32,6 +32,9 @@ export default class RunGame extends Phaser.Scene {
     justStarted;
 
     /** @type {Boolean} **/
+    firstPlayerInput;
+
+    /** @type {Boolean} **/
     gameOver;
 
     /** @type {number} **/
@@ -98,6 +101,7 @@ export default class RunGame extends Phaser.Scene {
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
         this.maximumGap = GAMESETTINGS.gameplay.maximumGap - GAMESETTINGS.gameplay.scalingDifficultyFactor;
         this.justStarted = true;
+        this.firstPlayerInput = true;
         this.gameOver = false;
         this.score = 0;
         this.health = GAMESETTINGS.gameplay.startingHealth;
@@ -117,7 +121,7 @@ export default class RunGame extends Phaser.Scene {
 
         this.player = this.createPlayer(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
         this.playerPivot = this.createPlayerPivot(this.player);
-        this.web = this.playerShootWeb(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, 0);
+        this.web = this.playerShootWeb(0);
         this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
 
         this.createFilterFX();
@@ -244,6 +248,7 @@ export default class RunGame extends Phaser.Scene {
         let player = this.matter.add.sprite(x, y, 'player')
             .setScale(GAMESETTINGS.scaleFactor)
             .setOrigin(0.5, 0)
+            .setVelocity(0, 0)
             .setMass(GAMESETTINGS.player.mass * GAMESETTINGS.scaleFactor);
         player.body.force = GAMESETTINGS.player.initialForce;
         player.body.restitution = 1;  // Enable bouncing
@@ -442,20 +447,34 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
-     * Create a player web (type MatterJS constraint) between the player character and a specified point on the ceiling
-     * @param {number} anchorOffsetX
-     * @param {number} anchorOffsetY
+     * Create a player web (type MatterJS constraint) between the player character and a specified x offset on the ceiling
+     * @param {number} xOffset
      * @returns {MatterJS.ConstraintType}
      */
-    playerShootWeb(anchorOffsetX, anchorOffsetY) {
+    playerShootWeb(xOffset) {
+        // Sound effect
         if (this.justStarted) {
             this.justStarted = false;
         } else {
             this.SFX.shoot.play();
         }
 
+        // Set up variables and constants for calculations
+        const playerX = Math.floor(this.player.x);
+        let anchorOffsetX;
+        let anchorOffsetY = 0;
+        let obstacleAbovePlayer;
+
+        // Calculate targetAnchorOffsetX and targetAnchorOffsetY
+        anchorOffsetX = playerX + xOffset;
+        obstacleAbovePlayer = this.getObstacleAbovePlayer(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
+        if (obstacleAbovePlayer !== undefined) {
+            anchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + GAMESETTINGS.scaleFactor * 3;  // TODO: find out why this works
+        }
+
+        // Shoot the web
         this.webExist = true;
-        let webLength = Math.sqrt((GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor) ** 2 + (this.player.y - anchorOffsetY) ** 2);
+        let webLength = Math.sqrt(xOffset ** 2 + (this.player.y - anchorOffsetY) ** 2);
         let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
         webObj.pointB = {
             x: anchorOffsetX,
@@ -621,54 +640,31 @@ export default class RunGame extends Phaser.Scene {
      * Update the player character's properties according to player input
      */
     updatePlayer() {
+        // -------------------------------- Categorize inputs -------------------------------- //
         let control = {
-            left: false,
-            right: false,
-            toggleWeb: false
+            left: this.cursor.left.isDown,
+            right: this.cursor.right.isDown,
         };
 
-        // -------------------------------- Categorize inputs -------------------------------- //
-        if (
-            this.cursor.left.isDown && this.webExist
-        ) { control.left = true; }
-        if (
-            this.cursor.right.isDown && this.webExist
-        ) { control.right = true; }
-        if (
-            Phaser.Input.Keyboard.JustDown(this.cursor.space)
-        ) { control.toggleWeb = true; }
-
         // -------------------------------- Apply input to player character -------------------------------- //
-        if (control.left) {  // Left movement (with scaling difficulty)
+        if (control.left && !control.right) {  // Left movement (with scaling difficulty)
+            if (this.firstPlayerInput) {
+                this.firstPlayerInput = false;
+            }
             this.matter.applyForce(this.player.body, { x: -(GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
-        }
-        if (control.right) {  // Right movement (with scaling difficulty)
+            if (!this.webExist) {
+                this.web = this.playerShootWeb(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
+            }
+        } else if (control.right && !control.left) {  // Right movement (with scaling difficulty)
+            if (this.firstPlayerInput) {
+                this.firstPlayerInput = false;
+            }
             this.matter.applyForce(this.player.body, { x: (GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
-        }
-        if (control.toggleWeb && this.webExist) {  // Cut web
+            if (!this.webExist) {
+                this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
+            }
+        } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
             this.playerCutWeb(this.web);
-        } else if (control.toggleWeb && !this.webExist) {  // Shoot web
-            let playerX = Math.floor(this.player.x);
-            let targetAnchorOffsetX;
-            let targetAnchorOffsetY = 0;
-            let obstacleAbovePlayer;
-
-            // Calculate targetAnchorOffsetX and targetAnchorOffsetY
-            if (this.player.body.velocity.x > 0) {
-                targetAnchorOffsetX = playerX + GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
-                obstacleAbovePlayer = this.getObstacleAbovePlayer(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
-            } else if (this.player.body.velocity.x < 0) {
-                targetAnchorOffsetX = playerX - GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor;
-                obstacleAbovePlayer = this.getObstacleAbovePlayer(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
-            } else {
-                targetAnchorOffsetX = playerX;
-                obstacleAbovePlayer = this.getObstacleAbovePlayer(0);
-            }
-            if (obstacleAbovePlayer !== undefined) {
-                targetAnchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + GAMESETTINGS.scaleFactor * 3;  // TODO: find out why this works
-            }
-
-            this.web = this.playerShootWeb(targetAnchorOffsetX, targetAnchorOffsetY);
         }
     }
 
