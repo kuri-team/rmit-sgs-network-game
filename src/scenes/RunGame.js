@@ -251,7 +251,7 @@ export default class RunGame extends Phaser.Scene {
             .setVelocity(0, 0)
             .setMass(GAMESETTINGS.player.mass * GAMESETTINGS.scaleFactor);
         player.body.force = GAMESETTINGS.player.initialForce;
-        player.body.restitution = 1;  // Enable bouncing
+        player.body.restitution = GAMESETTINGS.player.bounce;  // Enable bouncing
 
         // Readjust collision box yOffset
         for (let i = 0; i < player.body.vertices.length; i++) {

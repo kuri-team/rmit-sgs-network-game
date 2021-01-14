@@ -8,6 +8,7 @@ const GAMESETTINGS = {
     scaleFactor: 10,  // Scale the pixel art sprites up for smoother graphics
     player: {
         mass: 0.15,
+        bounce: 0.95,
         initialForce: {
             x: 0,
             y: 0
