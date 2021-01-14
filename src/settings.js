@@ -34,7 +34,7 @@ const GAMESETTINGS = {
     },
     controlSensitivity: 0.00015,
     gameOverDelay: 500,  // Delay before displaying game over screen
-    debug: true
+    debug: false
 };
 
 export default GAMESETTINGS;

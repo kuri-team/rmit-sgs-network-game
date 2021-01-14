@@ -85,6 +85,9 @@ export default class RunGame extends Phaser.Scene {
     /** @type {Phaser.Input.Pointer} **/
     pointer;
 
+    /** @type {Phaser.Input.Touch.TouchManager} **/
+    touchManager;
+
     /** @type {Phaser.Cameras.Scene2D.Camera} **/
     viewport;
     /* End of custom properties */
@@ -131,6 +134,9 @@ export default class RunGame extends Phaser.Scene {
 
         // Enable control via keyboard
         this.cursor = this.input.keyboard.createCursorKeys();
+
+        // Enable control via mouseclick
+        this.pointer = this.input.pointer1;
 
         // Enable camera following
         this.setupCamera();
@@ -646,8 +652,8 @@ export default class RunGame extends Phaser.Scene {
     updatePlayer() {
         // -------------------------------- Categorize inputs -------------------------------- //
         let control = {
-            left: this.cursor.left.isDown,
-            right: this.cursor.right.isDown,
+            left: this.cursor.left.isDown || (this.pointer.isDown && this.pointer.x < this.scale.width / 2),
+            right: this.cursor.right.isDown || (this.pointer.isDown && this.pointer.x > this.scale.width / 2),
         };
 
         // -------------------------------- Apply input to player character -------------------------------- //
