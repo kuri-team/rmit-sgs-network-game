@@ -211,7 +211,11 @@ export default class RunGame extends Phaser.Scene {
     createObstacles() {
         for (let i = 0; i < GAMESETTINGS.gameplay.obstacleOverhead; i++) {
             // Generate random height and gap according to settings.js
-            let randomObstacleY = this.genRandomObstacleY(this.minimumGap, this.maximumGap);
+            let randomObstacleY = this.genRandomObstacleY(
+                this.minimumGap,
+                this.maximumGap,
+                GAMESETTINGS.gameplay.maxObstacleYDeviation
+            );
 
             // Generate 2 obstacle objects and place them at the generated random height and gap
             /** @type {Phaser.Physics.Matter.Image && Phaser.GameObjects.GameObject} **/
@@ -467,7 +471,7 @@ export default class RunGame extends Phaser.Scene {
 
         // Calculate targetAnchorOffsetX and targetAnchorOffsetY
         anchorOffsetX = playerX + xOffset;
-        obstacleAbovePlayer = this.getObstacleAbovePlayer(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
+        obstacleAbovePlayer = this.getObstacleAbovePlayer(xOffset);
         if (obstacleAbovePlayer !== undefined) {
             anchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + GAMESETTINGS.scaleFactor * 3;  // TODO: find out why this works
         }
