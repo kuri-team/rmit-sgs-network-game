@@ -63,6 +63,9 @@ export default class Obstacles extends Array {
                 resultObstacleIdx = obstaclesInfo[i].index;
             }
         }
+        if (this[resultObstacleIdx] === undefined) {
+            return undefined;
+        }
         return this[resultObstacleIdx].ceilingObstacle;
     }
 
