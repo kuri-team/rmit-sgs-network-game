@@ -11,7 +11,6 @@ export default class PreloadGame extends Phaser.Scene {
 
     preload() {
         this.load.script('webFont', 'src/lib/webfont.js');  // Enable custom fonts handling
-        this.loadUserInterface();
         this.loadBackground();
         this.loadEnvironment();
         this.loadPlayer();
@@ -31,20 +30,16 @@ export default class PreloadGame extends Phaser.Scene {
     * ----------CUSTOM METHODS-------- *
     ************************************
      */
-    loadUserInterface() {
-        this.load.spritesheet('ui-health', 'assets/sprites/ui/ui-health.png', {
-            frameWidth: 4,
-            frameHeight: 4,
-            startFrame: 0,
-            endFrame: 1
-        });
-    }
-
     loadBackground() {
         if (GAMESETTINGS.debug) {
             this.load.image('background', 'assets/sprites/background/debug-bg.png');
         } else {
-            this.load.image('background', 'assets/sprites/background/background.png');
+            this.load.spritesheet('background', 'assets/sprites/background/background.png', {
+                frameWidth: 160,
+                frameHeight: 90,
+                startFrame: 0,
+                endFrame: 3
+            });
         }
     }
 
@@ -95,6 +90,15 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     createAnimations() {
+        this.anims.create({
+            key: 'background-anim',
+            frames: this.anims.generateFrameNumbers('background', {
+                start: 0,
+                end: 3
+            }),
+            frameRate: 1,
+            repeat: -1,
+        });
         this.anims.create({
             key: 'player-dead-anim',
             frames: this.anims.generateFrameNumbers('player-dead', {

@@ -193,13 +193,16 @@ export default class RunGame extends Phaser.Scene {
 
     /***
      * Create the background
-     * @returns {Phaser.GameObjects.Image}
+     * @returns {Phaser.GameObjects.Sprite}
      */
     createBackground() {
-        return this.add.image(0, this.scale.height / 2, 'background')
+        let background = this.add.sprite(0, this.scale.height / 2, 'background')
             .setScale(GAMESETTINGS.scaleFactor)
             .setScrollFactor(1, 1)
             .setOrigin(0, 0.5);
+        background.play('background-anim');
+        background.setAlpha(0.25);
+        return background;
     }
 
     /***
@@ -386,13 +389,15 @@ export default class RunGame extends Phaser.Scene {
                     `${this.score}`,
                     {
                         color: GAMESETTINGS.UI.scoreColor,
+                        stroke: GAMESETTINGS.UI.scoreStroke,
+                        strokeThickness: 12,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
-                        fontStyle: 'bold',
-                        fontSize: GAMESETTINGS.scaleFactor * 10
+                        fontStyle: 'normal',
+                        fontSize: GAMESETTINGS.scaleFactor * 12
                     }
                 )
                     .setScrollFactor(0, 0)
-                    .setBlendMode(Phaser.BlendModes.ADD);
+                    .setBlendMode(Phaser.BlendModes.NORMAL);
 
                 this.healthText = this.add.text(
                     GAMESETTINGS.scaleFactor * 8,

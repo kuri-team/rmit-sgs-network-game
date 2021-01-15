@@ -40,8 +40,9 @@ const GAMESETTINGS = {
         obstaclesYDeviation: 160 * aspectRatio * 0.1
     },
     UI: {
-      scoreColor: '#ffffff',
-      healthColor: '#b30000'
+        scoreColor: '#cdcdcd',
+        scoreStroke: '#999999',
+        healthColor: '#b30000'
     },
     gravity: {
         x: 0,
