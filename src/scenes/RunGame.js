@@ -1,5 +1,6 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
+import Obstacle from "../game/Obstacle.js";
 
 
 /***
@@ -58,7 +59,7 @@ export default class RunGame extends Phaser.Scene {
     /** @type {MatterJS.BodyType} **/
     ceilingAnchor;
 
-    /** @type {Phaser.Physics.Matter.Image[]}[] **/
+    /** @type [{Obstacle[]}] **/
     obstacles;
 
     /** @type {number} **/
@@ -223,24 +224,23 @@ export default class RunGame extends Phaser.Scene {
             let randomObstacleY = this.genRandomObstacleY(
                 this.minimumGap,
                 this.maximumGap,
-                GAMESETTINGS.gameplay.maxObstacleYDeviation
             );
 
             // Generate 2 obstacle objects and place them at the generated random height and gap
-            /** @type {Phaser.Physics.Matter.Image && Phaser.GameObjects.GameObject} **/
-            let obstacle1 = this.matter.add.image(  // Upper obstacle
+            /** @type {Obstacle} **/
+            let obstacle1 = new Obstacle(  // Upper obstacle
+                this.matter.world,
                 (GAMESETTINGS.gameplay.initialSafeZone + i * GAMESETTINGS.gameplay.distanceBetweenObstacles) * GAMESETTINGS.scaleFactor,
                 randomObstacleY.y1 * GAMESETTINGS.scaleFactor,
-                'obstacle')
-                .setScale(GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor)
-                .setStatic(true);
-            /** @type {Phaser.Physics.Matter.Image && Phaser.GameObjects.GameObject} **/
-            let obstacle2 = this.matter.add.image(  // Lower obstacle
+                'obstacle'
+            );
+            /** @type {Obstacle} **/
+            let obstacle2 = new Obstacle(  // Lower obstacle
+                this.matter.world,
                 obstacle1.x,
                 randomObstacleY.y2 * GAMESETTINGS.scaleFactor,
-                'obstacle')
-                .setScale(GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor)
-                .setStatic(true);
+                'obstacle'
+            );
 
             // Adjust center offset
             obstacle1.setPosition(obstacle1.x + obstacle1.displayWidth / 2, obstacle1.y - obstacle1.displayHeight / 2);
