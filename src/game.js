@@ -51,7 +51,14 @@ let config = {
     ]
 };
 
-let game = new Phaser.Game(config);
+// Run the game if the device is in landscape mode
+let game;
+if (screen.availWidth > screen.availHeight) {
+    game = new Phaser.Game(config);
+} else {
+    const MESSAGE = document.querySelector('.portrait-mode-message');
+    MESSAGE.setAttribute('style', 'display: block;')
+}
 
 
 export default {

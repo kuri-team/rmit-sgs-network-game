@@ -60,11 +60,35 @@ body {
 }
 
 footer {
-    padding-bottom: 5rem;
+    padding-bottom: 1rem;
+    margin: 0;
+}
+
+footer p {
+    color: #2b2b2b;
+    text-align: center;
+}
+
+footer a {
+    color: #4e4e4e;
 }
 
 p {
-    color: white;
+    color: #ffffff;
+    font-family: "Kenney High", sans-serif;
+}
+
+hr {
+    border-width: 0.01rem 0 0 0;
+}
+
+.portrait-mode-message {
+    display: none;
+    height: 100%;
+    margin: 10rem 5rem;
+}
+
+.portrait-mode-message p {
     font-family: "Kenney Future", sans-serif;
     text-align: center;
 }

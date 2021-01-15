@@ -1,10 +1,17 @@
+// Enable adaptive scaling on multiple screen sizes
+let aspectRatio = window.innerHeight / window.innerWidth;
+if (aspectRatio > 0.75) {
+    aspectRatio = 0.75;  // Default aspect ratio 4:3
+}
+
+
 /***
  * IMPORTANT: Only adjust game balance via this object
  * ***/
 const GAMESETTINGS = {
     backgroundColor: '#8f8f8f',
     nativeWidth: 160,
-    nativeHeight: 90,
+    nativeHeight: 160 * aspectRatio,
     scaleFactor: 10,  // Scale the pixel art sprites up for smoother graphics
     player: {
         mass: 0.15,
@@ -14,7 +21,7 @@ const GAMESETTINGS = {
             y: 0
         },
         initialX: 40,
-        initialY: 50,
+        initialY: 160 * aspectRatio * 0.55,
         webOverhead: 10,  // Spider web shooting distance (Set 0 to shoot at the anchor directly above the player)
         webColor: 0xffffff  // Color of the spider web
     },
@@ -26,7 +33,7 @@ const GAMESETTINGS = {
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 68,
-        maximumGap: 100,
+        maximumGap: 160 * aspectRatio * 1.1,
         obstaclesYDeviation: 20
     },
     gravity: {

@@ -196,10 +196,10 @@ export default class RunGame extends Phaser.Scene {
      * @returns {Phaser.GameObjects.Image}
      */
     createBackground() {
-        return this.add.image(0, 0, 'background')
+        return this.add.image(0, this.scale.height / 2, 'background')
             .setScale(GAMESETTINGS.scaleFactor)
             .setScrollFactor(1, 1)
-            .setOrigin(0, 0);
+            .setOrigin(0, 0.5);
     }
 
     /***
