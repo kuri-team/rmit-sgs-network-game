@@ -34,7 +34,7 @@ const GAMESETTINGS = {
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 68,
         maximumGap: 160 * aspectRatio * 1.1,
-        obstaclesYDeviation: 20
+        obstaclesYDeviation: 160 * aspectRatio * 0.1
     },
     gravity: {
         x: 0,
