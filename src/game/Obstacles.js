@@ -9,9 +9,10 @@ export default class Obstacles extends Array {
      * @param {number} obstaclesNumber
      * @param {number} minimumGap
      * @param {number} maximumGap
+     * @param {number} yDeviation
      * @return {Obstacles}
      */
-    constructor(world, obstaclesNumber, minimumGap, maximumGap) {
+    constructor(world, obstaclesNumber, minimumGap, maximumGap, yDeviation) {
         super(0);
         for (let i = 0; i < obstaclesNumber; i++) {
             // Generate random height and gap according to settings.js
@@ -19,19 +20,20 @@ export default class Obstacles extends Array {
                 minimumGap,
                 maximumGap,
             );
+            let currentYDeviation = Phaser.Math.Between(-yDeviation, yDeviation) * GAMESETTINGS.scaleFactor;
 
             // Generate 2 obstacle objects and place them at the generated random height and gap
             /** @type {Obstacle} **/
             let obstacle1 = new Obstacle(  // Upper obstacle
                 world,
                 (GAMESETTINGS.gameplay.initialSafeZone + i * GAMESETTINGS.gameplay.distanceBetweenObstacles) * GAMESETTINGS.scaleFactor,
-                randomObstacleY.y1 * GAMESETTINGS.scaleFactor,
+                randomObstacleY.y1 * GAMESETTINGS.scaleFactor + currentYDeviation,
             );
             /** @type {Obstacle} **/
             let obstacle2 = new Obstacle(  // Lower obstacle
                 world,
                 obstacle1.x,
-                randomObstacleY.y2 * GAMESETTINGS.scaleFactor,
+                randomObstacleY.y2 * GAMESETTINGS.scaleFactor + currentYDeviation,
             );
 
             // Adjust center offset

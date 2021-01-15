@@ -63,6 +63,9 @@ export default class RunGame extends Phaser.Scene {
     obstacles;
 
     /** @type {number} **/
+    obstaclesYDeviation;
+
+    /** @type {number} **/
     minimumGap;
 
     /** @type {number} **/
@@ -102,8 +105,9 @@ export default class RunGame extends Phaser.Scene {
         this.debugText = "";
         this.bufferZone = GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor * 1.5;
         this.obstacles = undefined;
+        this.obstaclesYDeviation = 0;
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
-        this.maximumGap = GAMESETTINGS.gameplay.maximumGap - GAMESETTINGS.gameplay.scalingDifficultyFactor;
+        this.maximumGap = GAMESETTINGS.gameplay.maximumGap;
         this.justStarted = true;
         this.firstPlayerInput = true;
         this.gameOver = false;
@@ -199,28 +203,15 @@ export default class RunGame extends Phaser.Scene {
     }
 
     /***
-     * Generate a random pair of Y coordinates for use of Obstacles generation
-     * @param {number} minGap
-     * @param {number} maxGap
-     * @return {{y1: number, y2: number}}
-     */
-    genRandomObstacleY(minGap, maxGap) {
-        let result = {
-            y1: 0,
-            y2: 0
-        }
-        result.y1 = Phaser.Math.Between(0, GAMESETTINGS.nativeHeight - minGap);
-        result.y2 = result.y1 + Phaser.Math.Between(minGap, maxGap);
-
-        return result;
-    }
-
-    /***
      * Create the obstacles
      */
     createObstacles() {
         this.obstacles = new Obstacles(
-            this.matter.world, GAMESETTINGS.gameplay.obstacleOverhead, this.minimumGap, this.maximumGap
+            this.matter.world,
+            GAMESETTINGS.gameplay.obstacleOverhead,
+            this.minimumGap,
+            this.maximumGap,
+            this.obstaclesYDeviation
         );
     }
 
@@ -512,10 +503,17 @@ export default class RunGame extends Phaser.Scene {
 
             // Update scaling difficulty
             if (this.minimumGap > GAMESETTINGS.gameplay.minimumGap) {
-                this.minimumGap -= GAMESETTINGS.gameplay.scalingDifficultyFactor;
+                this.minimumGap -= score / GAMESETTINGS.gameplay.scalingDifficultyFactor;
                 if (this.minimumGap < GAMESETTINGS.gameplay.minimumGap) {
                     this.minimumGap = GAMESETTINGS.gameplay.minimumGap;
                 }
+            } else {
+                this.minimumGap = GAMESETTINGS.gameplay.minimumGap;
+            }
+            if (this.obstaclesYDeviation < GAMESETTINGS.gameplay.obstaclesYDeviation) {
+                this.obstaclesYDeviation += score / GAMESETTINGS.gameplay.scalingDifficultyFactor;
+            } else {
+                this.obstaclesYDeviation = GAMESETTINGS.gameplay.obstaclesYDeviation;
             }
         }
     }
@@ -568,14 +566,15 @@ export default class RunGame extends Phaser.Scene {
                 }
 
                 // Move the unused obstacle to the front and set its Y values to random according to game settings
+                let currentObstacleYDeviation = Phaser.Math.Between(-this.obstaclesYDeviation, this.obstaclesYDeviation) * GAMESETTINGS.scaleFactor;
                 let randomObstacleY = this.obstacles.genRandomObstacleY(this.minimumGap, this.maximumGap);
                 this.obstacles[i].ceilingObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i].ceilingObstacle.displayHeight / 2
+                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i].ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
                 this.obstacles[i].floorObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2
+                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
             }
         }
@@ -599,23 +598,22 @@ export default class RunGame extends Phaser.Scene {
 
         // -------------------------------- Apply input to player character -------------------------------- //
         if (control.left && !control.right) {  // Left movement (with scaling difficulty)
-            if (this.firstPlayerInput) {
-                this.firstPlayerInput = false;
-            }
             this.matter.applyForce(this.player.body, { x: -(GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
             if (!this.webExist) {
                 this.web = this.playerShootWeb(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
         } else if (control.right && !control.left) {  // Right movement (with scaling difficulty)
-            if (this.firstPlayerInput) {
-                this.firstPlayerInput = false;
-            }
             this.matter.applyForce(this.player.body, { x: (GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
             if (!this.webExist) {
                 this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
         } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
             this.playerCutWeb(this.web);
+        }
+
+        // Check if this is the first player interaction with the game
+        if (this.firstPlayerInput && (this.cursor.left.isDown || this.cursor.right.isDown || this.pointer.isDown || this.touch.isDown)) {
+            this.firstPlayerInput = false;
         }
     }
 
@@ -652,6 +650,10 @@ export default class RunGame extends Phaser.Scene {
             + `worldBounds[1].y = ${this.worldBounds[1].y}\n`
             + `worldBounds[2].x = ${this.worldBounds[2].x}\n`
             + `worldBounds[2].y = ${this.worldBounds[2].y}\n`
+            + '\n'
+            + `obstaclesDeviation = ${this.obstaclesYDeviation}\n`
+            + `minimumGap = ${this.minimumGap}\n`
+            + `maximumGap = ${this.maximumGap}\n`
         ;
         this.debugTextObj.text = this.debugText;
     }
