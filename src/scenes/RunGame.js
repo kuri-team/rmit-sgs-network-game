@@ -41,6 +41,9 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     score;
 
+    /** @type {number} **/
+    highScore;
+
     /** @type {Phaser.GameObjects.Text} **/
     scoreText;
 
@@ -112,6 +115,8 @@ export default class RunGame extends Phaser.Scene {
         this.firstPlayerInput = true;
         this.gameOver = false;
         this.score = 0;
+        this.highScore = localStorage['highscore'];
+        if (!this.highScore) { this.highScore = 0 }
         this.health = GAMESETTINGS.gameplay.startingHealth;
         this.matter.set60Hz();
     }
@@ -164,7 +169,13 @@ export default class RunGame extends Phaser.Scene {
 
         // Check for game over
         if (this.gameOver) {
-            this.scene.start('gameOver', { score: this.score });
+            if (this.score > this.highScore) {
+                this.highScore = this.score;
+                localStorage['highscore'] = this.highScore;
+            }
+            this.scene.start('gameOver', {
+                score: this.score, highScore: this.highScore
+            });
         }
 
         // Update debug information if specified in game settings object
@@ -393,7 +404,7 @@ export default class RunGame extends Phaser.Scene {
                         strokeThickness: 12,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
                         fontStyle: 'normal',
-                        fontSize: GAMESETTINGS.scaleFactor * 12
+                        fontSize: GAMESETTINGS.scaleFactor * 10
                     }
                 )
                     .setScrollFactor(0, 0)
@@ -505,6 +516,9 @@ export default class RunGame extends Phaser.Scene {
         if (this.score < score) {
             this.score = score;
             this.scoreText.text = `${this.score}`;
+            if (this.score > this.highScore) {
+                this.scoreText.text += ' HI';
+            }
 
             // Update scaling difficulty
             if (this.minimumGap > GAMESETTINGS.gameplay.minimumGap) {
@@ -636,6 +650,7 @@ export default class RunGame extends Phaser.Scene {
         this.debugText = "STATS FOR NERDS\n\n"
             + `gameOver = ${this.gameOver}\n`
             + `score = ${this.score}\n`
+            + `highScore = ${this.highScore}\n`
             + `minimumGap = ${this.minimumGap}\n`
             + `maximumGap = ${this.maximumGap}\n`
             + `health = ${this.health}\n`

@@ -37,7 +37,7 @@ export default class GameOver extends Phaser.Scene {
                 families: game.customFonts
             },
             active: () => {
-                this.add.text(6.25 * GAMESETTINGS.scaleFactor, 2.5 * GAMESETTINGS.scaleFactor, `Score: ${data.score}`, {
+                this.add.text(6.25 * GAMESETTINGS.scaleFactor, 2.5 * GAMESETTINGS.scaleFactor, `Highscore: ${data.highScore}\nScore: ${data.score}`, {
                     fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#aeaeae', fontStyle: 'bold'
                 });
                 this.restart = this.add.text(0, 2.5 * GAMESETTINGS.scaleFactor, 'Restart', {
