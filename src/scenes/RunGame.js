@@ -1,6 +1,6 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
-import Obstacle from "../game/Obstacle.js";
+import Obstacles from "../game/Obstacles.js";
 
 
 /***
@@ -59,7 +59,7 @@ export default class RunGame extends Phaser.Scene {
     /** @type {MatterJS.BodyType} **/
     ceilingAnchor;
 
-    /** @type [{Obstacle[]}] **/
+    /** @type {Obstacles} **/
     obstacles;
 
     /** @type {number} **/
@@ -101,7 +101,7 @@ export default class RunGame extends Phaser.Scene {
         };
         this.debugText = "";
         this.bufferZone = GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor * 1.5;
-        this.obstacles = [];
+        this.obstacles = undefined;
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
         this.maximumGap = GAMESETTINGS.gameplay.maximumGap - GAMESETTINGS.gameplay.scalingDifficultyFactor;
         this.justStarted = true;
@@ -219,36 +219,9 @@ export default class RunGame extends Phaser.Scene {
      * Create the obstacles
      */
     createObstacles() {
-        for (let i = 0; i < GAMESETTINGS.gameplay.obstacleOverhead; i++) {
-            // Generate random height and gap according to settings.js
-            let randomObstacleY = this.genRandomObstacleY(
-                this.minimumGap,
-                this.maximumGap,
-            );
-
-            // Generate 2 obstacle objects and place them at the generated random height and gap
-            /** @type {Obstacle} **/
-            let obstacle1 = new Obstacle(  // Upper obstacle
-                this.matter.world,
-                (GAMESETTINGS.gameplay.initialSafeZone + i * GAMESETTINGS.gameplay.distanceBetweenObstacles) * GAMESETTINGS.scaleFactor,
-                randomObstacleY.y1 * GAMESETTINGS.scaleFactor,
-                'obstacle'
-            );
-            /** @type {Obstacle} **/
-            let obstacle2 = new Obstacle(  // Lower obstacle
-                this.matter.world,
-                obstacle1.x,
-                randomObstacleY.y2 * GAMESETTINGS.scaleFactor,
-                'obstacle'
-            );
-
-            // Adjust center offset
-            obstacle1.setPosition(obstacle1.x + obstacle1.displayWidth / 2, obstacle1.y - obstacle1.displayHeight / 2);
-            obstacle2.setPosition(obstacle2.x + obstacle2.displayWidth / 2, obstacle2.y + obstacle2.displayHeight / 2);
-
-            // Append them to the obstacles arrays
-            this.obstacles.push([obstacle1, obstacle2]);
-        }
+        this.obstacles = new Obstacles(
+            this.matter.world, GAMESETTINGS.gameplay.obstacleOverhead, this.minimumGap, this.maximumGap
+        );
     }
 
     /***
@@ -391,6 +364,10 @@ export default class RunGame extends Phaser.Scene {
         return anchor;
     }
 
+    /***
+     * Image post-processing effects
+     * @return {Phaser.GameObjects.Sprite}
+     */
     createFilterFX() {
         return this.add.sprite(
             GAMESETTINGS.nativeWidth / 2 * GAMESETTINGS.scaleFactor,
@@ -480,7 +457,7 @@ export default class RunGame extends Phaser.Scene {
 
         // Calculate targetAnchorOffsetX and targetAnchorOffsetY
         anchorOffsetX = playerX + xOffset;
-        obstacleAbovePlayer = this.getObstacleAbovePlayer(xOffset);
+        obstacleAbovePlayer = this.obstacles.getObstacleAbove(this.player, xOffset);
         if (obstacleAbovePlayer !== undefined) {
             anchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + GAMESETTINGS.scaleFactor * 3;  // TODO: find out why this works
         }
@@ -580,73 +557,28 @@ export default class RunGame extends Phaser.Scene {
      */
     updateObstacles() {
         for (let i = 0; i < this.obstacles.length; i++) {
-            if (this.obstacles[i][0].body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
+            if (this.obstacles[i].ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
                 // Find the rightmost obstacle
                 /** @type {Phaser.Physics.Matter.Image} **/
-                let rightmostObstacle = this.obstacles[0][0];
+                let rightmostObstacle = this.obstacles[0].ceilingObstacle;
                 for (let j = 0; j < this.obstacles.length; j++) {
-                    if (this.obstacles[j][0].x > rightmostObstacle.x) {
-                        rightmostObstacle = this.obstacles[j][0];
+                    if (this.obstacles[j].ceilingObstacle.x > rightmostObstacle.x) {
+                        rightmostObstacle = this.obstacles[j].ceilingObstacle;
                     }
                 }
 
                 // Move the unused obstacle to the front and set its Y values to random according to game settings
-                let randomObstacleY = this.genRandomObstacleY(this.minimumGap, this.maximumGap);
-                this.obstacles[i][0].setPosition(
+                let randomObstacleY = this.obstacles.genRandomObstacleY(this.minimumGap, this.maximumGap);
+                this.obstacles[i].ceilingObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i][0].displayHeight / 2
+                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i].ceilingObstacle.displayHeight / 2
                 );
-                this.obstacles[i][1].setPosition(
+                this.obstacles[i].floorObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i][0].displayHeight / 2
+                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2
                 );
             }
         }
-    }
-
-    getObstaclesInfo() {
-        let obstaclesInfo = [];
-        for (let i = 0; i < this.obstacles.length; i++) {
-            let singleObstacleInfo = {
-                x: this.obstacles[i][0].body.vertices[0].x,
-                index: i
-            }
-            obstaclesInfo.push(singleObstacleInfo);
-        }
-        return obstaclesInfo
-    }
-
-    sortObstaclesInfo(obstaclesInfo) {  // Insertion sort
-        for (let i = 0; i < obstaclesInfo.length; i++) {
-            while (i > 0 && obstaclesInfo[i].x < obstaclesInfo[i - 1].x) {
-                // Swap using JS destructure assignment
-                [
-                    obstaclesInfo[i], obstaclesInfo[i - 1]
-                ] = [
-                    obstaclesInfo[i - 1], obstaclesInfo[i]
-                ];
-                i--;
-            }
-        }
-        return obstaclesInfo;
-    }
-
-    /***
-     * Return the ceiling obstacle above the player with specified x offset
-     * @param xOffset
-     * @return {Phaser.Physics.Matter.Image}
-     */
-    getObstacleAbovePlayer(xOffset) {
-        let obstaclesInfo = this.getObstaclesInfo();
-        obstaclesInfo = this.sortObstaclesInfo(obstaclesInfo);
-
-        let resultObstacleIdx;
-        for (let i = 0; i < obstaclesInfo.length; i++) {
-            if (obstaclesInfo[i].x <= this.player.x + xOffset) {
-                resultObstacleIdx = obstaclesInfo[i].index;
-            }
-        }
-        return this.obstacles[resultObstacleIdx][0];
     }
 
     /***
