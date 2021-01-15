@@ -26,17 +26,18 @@ export default class GameOver extends Phaser.Scene {
                 families: game.customFonts
             },
             active: () => {
-                this.add.text(6.25 * GAMESETTINGS.scaleFactor, 2.5 * GAMESETTINGS.scaleFactor, `Game Over\nScore: ${data.score}`, {
-                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#000', fontStyle: 'bold'
+                this.add.text(6.25 * GAMESETTINGS.scaleFactor, 2.5 * GAMESETTINGS.scaleFactor, `Score: ${data.score}`, {
+                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#aeaeae', fontStyle: 'bold'
                 });
-                this.restart = this.add.text(6.25 * GAMESETTINGS.scaleFactor, this.game.scale.height - 20 * GAMESETTINGS.scaleFactor, 'Restart', {
-                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', backgroundColor: '#000', fontStyle: 'bold', padding: {
+                this.restart = this.add.text(0, 2.5 * GAMESETTINGS.scaleFactor, 'Restart', {
+                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: GAMESETTINGS.backgroundColor, backgroundColor: '#aeaeae', fontStyle: 'bold', padding: {
                         left: 2.5 * GAMESETTINGS.scaleFactor,
                         right: 1.25 * GAMESETTINGS.scaleFactor,
                         top: 0,
                         bottom: 1.25 * GAMESETTINGS.scaleFactor
                     }
                 }).setInteractive();
+                this.restart.setX(this.game.scale.width - 6.25 * GAMESETTINGS.scaleFactor - this.restart.displayWidth);
             }
         });
 
@@ -52,7 +53,7 @@ export default class GameOver extends Phaser.Scene {
 
         this.input.on('gameobjectdown', () => {
             clickSFX.play();
-            this.scene.start('runGame')
+            this.scene.start('runGame');
         }, this);
     }
 }

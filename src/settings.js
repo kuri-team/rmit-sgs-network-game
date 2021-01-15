@@ -1,7 +1,10 @@
 // Enable adaptive scaling on multiple screen sizes
 let aspectRatio = window.innerHeight / window.innerWidth;
 if (aspectRatio > 0.75) {
-    aspectRatio = 0.75;  // Default aspect ratio 4:3
+    aspectRatio = 0.75;  // Default aspect ratio 4:3 for horizontal mode
+}
+if (screen.availWidth < screen.availHeight) {
+    aspectRatio = 0.5625;  // Default aspect ratio 16:9 for horizontal mode
 }
 
 
@@ -9,7 +12,7 @@ if (aspectRatio > 0.75) {
  * IMPORTANT: Only adjust game balance via this object
  * ***/
 const GAMESETTINGS = {
-    backgroundColor: '#8f8f8f',
+    backgroundColor: '#cdcdcd',
     nativeWidth: 160,
     nativeHeight: 160 * aspectRatio,
     scaleFactor: 10,  // Scale the pixel art sprites up for smoother graphics

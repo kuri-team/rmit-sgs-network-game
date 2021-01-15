@@ -385,7 +385,7 @@ export default class RunGame extends Phaser.Scene {
                     GAMESETTINGS.scaleFactor * 4,
                     `${this.score}`,
                     {
-                        color: '#919191',
+                        color: '#ffffff',
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
                         fontStyle: 'bold',
                         fontSize: GAMESETTINGS.scaleFactor * 10
@@ -635,8 +635,17 @@ export default class RunGame extends Phaser.Scene {
             + `maximumGap = ${this.maximumGap}\n`
             + `health = ${this.health}\n`
             + '\n'
+            + `cursor.left.isDown = ${this.cursor.left.isDown}\n`
+            + `cursor.right.isDown = ${this.cursor.right.isDown}\n`
+            + `pointer.x = ${this.pointer.x}\n`
+            + `pointer.isDown = ${this.pointer.isDown}\n`
+            + `touch.x = ${this.touch.x}\n`
+            + `touch.isDown = ${this.touch.isDown}\n`
+            + '\n'
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`
+            + `player.velocity.x = ${this.player.body.velocity.x}\n`
+            + `player.velocity.y = ${this.player.body.velocity.y}\n`
             + `webExist = ${this.webExist}\n`
             + `webLength = ${this.web.length}\n`
             + `ceilingAnchorOffset = ${this.web.pointB.x}\n`
@@ -651,7 +660,7 @@ export default class RunGame extends Phaser.Scene {
             + `worldBounds[2].x = ${this.worldBounds[2].x}\n`
             + `worldBounds[2].y = ${this.worldBounds[2].y}\n`
             + '\n'
-            + `obstaclesDeviation = ${this.obstaclesYDeviation}\n`
+            + `obstaclesYDeviation = ${this.obstaclesYDeviation}\n`
             + `minimumGap = ${this.minimumGap}\n`
             + `maximumGap = ${this.maximumGap}\n`
         ;

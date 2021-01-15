@@ -28,7 +28,7 @@ let customFonts = [
 ];
 
 
-let config = {
+const config = {
     backgroundColor: GAMESETTINGS.backgroundColor,
     pixelArt: true,
     type: Phaser.AUTO,
@@ -51,13 +51,16 @@ let config = {
     ]
 };
 
-// Run the game if the device is in landscape mode
+// Scale the game accordingly in horizontal and vertical mode
 let game;
-if (screen.availWidth > screen.availHeight) {
+if (screen.availWidth > screen.availHeight) {  // Horizontal mode
     game = new Phaser.Game(config);
-} else {
-    const MESSAGE = document.querySelector('.portrait-mode-message');
-    MESSAGE.setAttribute('style', 'display: block;')
+} else {  // Vertical mode
+    game = new Phaser.Game(config);
+    document.querySelector('.portrait-mode-message').setAttribute('style', 'display: block; margin-left: 0; margin-right: 0;');
+    document.querySelector('footer').setAttribute('style', 'display: none;');
+    document.querySelector('body').setAttribute('style', 'margin: 0 2rem;');
+    document.querySelector('#game-wrapper').setAttribute('style', 'margin: 0 2rem;');
 }
 
 
