@@ -1,5 +1,6 @@
 import GAMESETTINGS from "./settings.js";
 import PreloadGame from "./scenes/PreloadGame.js";
+import StartScreen from "./scenes/StartScreen.js";
 import RunGame from "./scenes/RunGame.js";
 import GameOver from "./scenes/GameOver.js";
 
@@ -47,7 +48,7 @@ const config = {
         }
     },
     scene: [
-        PreloadGame, RunGame, GameOver
+        PreloadGame, StartScreen, RunGame, GameOver
     ]
 };
 

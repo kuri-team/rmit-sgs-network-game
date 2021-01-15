@@ -10,8 +10,19 @@ export default class GameOver extends Phaser.Scene {
         super("gameOver");
     }
 
+
+    /*
+    *************************************
+    * ---------CUSTOM PROPERTIES------- *
+    *************************************
+     */
     /** @type {Phaser.GameObjects.Text} **/
     restart;
+
+    /** @type {Phaser.Types.Input.Keyboard.CursorKeys} **/
+    cursor;
+    /* End of custom properties */
+
 
     /***
      *
@@ -55,5 +66,13 @@ export default class GameOver extends Phaser.Scene {
             clickSFX.play();
             this.scene.start('runGame');
         }, this);
+
+        // Enable keyboard input to restart game
+        this.cursor = this.input.keyboard.createCursorKeys();
+    }
+
+    update(time, delta) {
+        super.update(time, delta);
+        if (this.cursor.left.isDown || this.cursor.right.isDown) { this.scene.start('runGame'); }
     }
 }

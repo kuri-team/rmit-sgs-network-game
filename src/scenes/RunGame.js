@@ -385,7 +385,7 @@ export default class RunGame extends Phaser.Scene {
                     GAMESETTINGS.scaleFactor * 4,
                     `${this.score}`,
                     {
-                        color: '#ffffff',
+                        color: GAMESETTINGS.UI.scoreColor,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
                         fontStyle: 'bold',
                         fontSize: GAMESETTINGS.scaleFactor * 10
@@ -399,7 +399,7 @@ export default class RunGame extends Phaser.Scene {
                     this.game.scale.height - GAMESETTINGS.scaleFactor * 12,
                     '',
                     {
-                        color: '#b30000',
+                        color: GAMESETTINGS.UI.healthColor,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
                         fontStyle: 'bold',
                         fontSize: GAMESETTINGS.scaleFactor * 10,

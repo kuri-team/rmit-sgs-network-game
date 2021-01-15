@@ -26,7 +26,7 @@ const GAMESETTINGS = {
         initialX: 40,
         initialY: 160 * aspectRatio * 0.55,
         webOverhead: 10,  // Spider web shooting distance (Set 0 to shoot at the anchor directly above the player)
-        webColor: 0xffffff  // Color of the spider web
+        webColor: 0xaeaeae  // Color of the spider web
     },
     gameplay: {
         scoreFactor: 1000,
@@ -36,8 +36,12 @@ const GAMESETTINGS = {
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 68,
-        maximumGap: 160 * aspectRatio * 1.1,
+        maximumGap: 80,
         obstaclesYDeviation: 160 * aspectRatio * 0.1
+    },
+    UI: {
+      scoreColor: '#ffffff',
+      healthColor: '#b30000'
     },
     gravity: {
         x: 0,
