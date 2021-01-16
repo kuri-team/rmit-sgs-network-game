@@ -52,7 +52,7 @@ const GAMESETTINGS = {
         x: 0,
         y: 0.15
     },
-    controlSensitivity: 0.00015,
+    controlSensitivity: 0.0002,
     gameOverDelay: 500,  // Delay before displaying game over screen
     controlDelayOnStart: 175,
     debug: false
