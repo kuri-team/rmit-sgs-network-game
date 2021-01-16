@@ -32,7 +32,7 @@ let customFonts = [
 const config = {
     backgroundColor: GAMESETTINGS.backgroundColor,
     pixelArt: true,
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     scale: {
         parent: 'game-wrapper',
         mode: Phaser.Scale.FIT,
