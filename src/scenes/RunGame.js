@@ -574,28 +574,33 @@ export default class RunGame extends Phaser.Scene {
      */
     updateObstacles() {
         for (let i = 0; i < this.obstacles.length; i++) {
+            let currentObstacle = this.obstacles[i];
+
             // Update dynamic obstacles
-            if (this.obstacles[i].ceilingObstacle.dynamic) {
-                this.obstacles[i].ceilingObstacle.updateDynamic();
-                this.obstacles[i].floorObstacle.updateDynamic();
+            if (currentObstacle.ceilingObstacle.dynamic) {
+                currentObstacle.ceilingObstacle.updateDynamic();
+                currentObstacle.floorObstacle.updateDynamic();
 
                 // Update moving direction
                 if (
-                    this.obstacles[i].ceilingObstacle.body.vertices[0].y > 0 ||
-                    this.obstacles[i].floorObstacle.body.vertices[3].y < this.game.scale.height
+                    currentObstacle.ceilingObstacle.body.vertices[0].y > 0 ||
+                    currentObstacle.floorObstacle.body.vertices[3].y < this.game.scale.height
                 ) {
-                    this.obstacles[i].ceilingObstacle.velocity *= -1;
-                    this.obstacles[i].floorObstacle.velocity *= -1;
+                    currentObstacle.ceilingObstacle.velocity *= -1;
+                    currentObstacle.floorObstacle.velocity *= -1;
                 }
 
                 // Update this.web anchor yOffset according to current obstacle
-                if (this.obstacles[i].ceilingObstacle.body.vertices[3].x <= this.web.pointB.x && this.web.pointB.x <= this.obstacles[i].ceilingObstacle.body.vertices[2].x) {
-                    this.web.pointB.y = this.obstacles[i].ceilingObstacle.body.vertices[3].y;
+                if (
+                    currentObstacle.ceilingObstacle.body.vertices[3].x <= this.web.pointB.x &&
+                    this.web.pointB.x <= currentObstacle.ceilingObstacle.body.vertices[2].x
+                ) {
+                    this.web.pointB.y = currentObstacle.ceilingObstacle.body.vertices[3].y;
                 }
             }
 
             // Obstacle generation
-            if (this.obstacles[i].ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
+            if (currentObstacle.ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
                 // Find the rightmost obstacle
                 /** @type {Phaser.Physics.Matter.Image} **/
                 let rightmostObstacle = this.obstacles[0].ceilingObstacle;
@@ -608,13 +613,13 @@ export default class RunGame extends Phaser.Scene {
                 // Move the unused obstacle to the front and set its Y values to random according to game settings
                 let currentObstacleYDeviation = Phaser.Math.Between(-this.obstaclesYDeviation, this.obstaclesYDeviation) * GAMESETTINGS.scaleFactor;
                 let randomObstacleY = this.obstacles.genRandomObstacleY(this.minimumGap, this.maximumGap);
-                this.obstacles[i].ceilingObstacle.setPosition(
+                currentObstacle.ceilingObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i].ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
+                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - currentObstacle.ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
-                this.obstacles[i].floorObstacle.setPosition(
+                currentObstacle.floorObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
+                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + currentObstacle.ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
 
                 //  Generate dynamic obstacle with random direction of y movement
@@ -625,10 +630,10 @@ export default class RunGame extends Phaser.Scene {
                     } else {
                         direction = 1;
                     }
-                    this.obstacles[i].ceilingObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
-                    this.obstacles[i].floorObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
-                    this.obstacles[i].ceilingObstacle.dynamic = true;
-                    this.obstacles[i].floorObstacle.dynamic = true;
+                    currentObstacle.ceilingObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    currentObstacle.floorObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    currentObstacle.ceilingObstacle.dynamic = true;
+                    currentObstacle.floorObstacle.dynamic = true;
                 }
             }
         }
