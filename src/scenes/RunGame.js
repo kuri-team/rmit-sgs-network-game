@@ -1,6 +1,7 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
 import Obstacles from "../game/Obstacles.js";
+import Bomb from "../game/Bomb.js";
 
 
 /***
@@ -41,6 +42,9 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     score;
 
+    /** @type {number} **/
+    highScore;
+
     /** @type {Phaser.GameObjects.Text} **/
     scoreText;
 
@@ -61,6 +65,12 @@ export default class RunGame extends Phaser.Scene {
 
     /** @type {Obstacles} **/
     obstacles;
+
+    /** @type {Bomb} **/
+    bomb;
+
+    /** @type {number} **/
+    obstaclesYDeviation;
 
     /** @type {number} **/
     minimumGap;
@@ -101,13 +111,17 @@ export default class RunGame extends Phaser.Scene {
         };
         this.debugText = "";
         this.bufferZone = GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor * 1.5;
+        this.bomb = undefined;
         this.obstacles = undefined;
+        this.obstaclesYDeviation = 0;
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
-        this.maximumGap = GAMESETTINGS.gameplay.maximumGap - GAMESETTINGS.gameplay.scalingDifficultyFactor;
+        this.maximumGap = GAMESETTINGS.gameplay.maximumGap;
         this.justStarted = true;
         this.firstPlayerInput = true;
         this.gameOver = false;
         this.score = 0;
+        this.highScore = localStorage['highscore'];
+        if (!this.highScore) { this.highScore = 0 }
         this.health = GAMESETTINGS.gameplay.startingHealth;
         this.matter.set60Hz();
     }
@@ -126,7 +140,7 @@ export default class RunGame extends Phaser.Scene {
         this.player = this.createPlayer(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(0);
-        this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
+        this.player.setOnCollide(pair => { this.playerCollisionHandler(pair); });
 
         this.createFilterFX();
 
@@ -160,7 +174,16 @@ export default class RunGame extends Phaser.Scene {
 
         // Check for game over
         if (this.gameOver) {
-            this.scene.start('gameOver', { score: this.score });
+            if (this.score > this.highScore) {
+                this.highScore = this.score;
+                localStorage['highscore'] = this.highScore;
+            }
+
+            this.cleanUp();
+
+            this.scene.start('gameOver', {
+                score: this.score, highScore: this.highScore
+            });
         }
 
         // Update debug information if specified in game settings object
@@ -189,30 +212,16 @@ export default class RunGame extends Phaser.Scene {
 
     /***
      * Create the background
-     * @returns {Phaser.GameObjects.Image}
+     * @returns {Phaser.GameObjects.Sprite}
      */
     createBackground() {
-        return this.add.image(0, 0, 'background')
+        let background = this.add.sprite(0, this.scale.height / 2, 'background')
             .setScale(GAMESETTINGS.scaleFactor)
             .setScrollFactor(1, 1)
-            .setOrigin(0, 0);
-    }
-
-    /***
-     * Generate a random pair of Y coordinates for use of Obstacles generation
-     * @param {number} minGap
-     * @param {number} maxGap
-     * @return {{y1: number, y2: number}}
-     */
-    genRandomObstacleY(minGap, maxGap) {
-        let result = {
-            y1: 0,
-            y2: 0
-        }
-        result.y1 = Phaser.Math.Between(0, GAMESETTINGS.nativeHeight - minGap);
-        result.y2 = result.y1 + Phaser.Math.Between(minGap, maxGap);
-
-        return result;
+            .setOrigin(0, 0.5);
+        if (!GAMESETTINGS.debug) { background.play('background-anim'); }
+        background.setAlpha(0.25);
+        return background;
     }
 
     /***
@@ -220,7 +229,11 @@ export default class RunGame extends Phaser.Scene {
      */
     createObstacles() {
         this.obstacles = new Obstacles(
-            this.matter.world, GAMESETTINGS.gameplay.obstacleOverhead, this.minimumGap, this.maximumGap
+            this.matter.world,
+            GAMESETTINGS.gameplay.obstacleOverhead,
+            this.minimumGap,
+            this.maximumGap,
+            this.obstaclesYDeviation
         );
     }
 
@@ -258,7 +271,7 @@ export default class RunGame extends Phaser.Scene {
      * @param {Phaser.Physics.Matter.Matter.Pair} pair
      * @return {Phaser.Physics.Matter.Matter.Pair}
      */
-    playerCollideHandler(pair) {
+    playerCollisionHandler(pair) {
         this.SFX.dead.play();
 
         if (this.webExist) {
@@ -276,7 +289,7 @@ export default class RunGame extends Phaser.Scene {
             this.player.setTexture('player');
         }
 
-        return pair;  // Provide streamlining of data. Read more about pair in MatterJS documentation.
+        return pair;  // Provide streamlining of collision data. Read more about pair in MatterJS documentation.
     }
 
     /***
@@ -394,21 +407,23 @@ export default class RunGame extends Phaser.Scene {
                     GAMESETTINGS.scaleFactor * 4,
                     `${this.score}`,
                     {
-                        color: '#919191',
+                        color: GAMESETTINGS.UI.scoreColor,
+                        stroke: GAMESETTINGS.UI.scoreStroke,
+                        strokeThickness: 12,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
-                        fontStyle: 'bold',
+                        fontStyle: 'normal',
                         fontSize: GAMESETTINGS.scaleFactor * 10
                     }
                 )
                     .setScrollFactor(0, 0)
-                    .setBlendMode(Phaser.BlendModes.ADD);
+                    .setBlendMode(Phaser.BlendModes.NORMAL);
 
                 this.healthText = this.add.text(
                     GAMESETTINGS.scaleFactor * 8,
                     this.game.scale.height - GAMESETTINGS.scaleFactor * 12,
                     '',
                     {
-                        color: '#b30000',
+                        color: GAMESETTINGS.UI.healthColor,
                         fontFamily: 'Kenney Mini Square, Arial, sans-serif',
                         fontStyle: 'bold',
                         fontSize: GAMESETTINGS.scaleFactor * 10,
@@ -465,7 +480,7 @@ export default class RunGame extends Phaser.Scene {
         // Shoot the web
         this.webExist = true;
         let webLength = Math.sqrt(xOffset ** 2 + (this.player.y - anchorOffsetY) ** 2);
-        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
+        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength, GAMESETTINGS.player.webStiffness);
         webObj.pointB = {
             x: anchorOffsetX,
             y: anchorOffsetY
@@ -509,13 +524,23 @@ export default class RunGame extends Phaser.Scene {
         if (this.score < score) {
             this.score = score;
             this.scoreText.text = `${this.score}`;
+            if (this.score > this.highScore) {
+                this.scoreText.text += ' HI';
+            }
 
             // Update scaling difficulty
             if (this.minimumGap > GAMESETTINGS.gameplay.minimumGap) {
-                this.minimumGap -= GAMESETTINGS.gameplay.scalingDifficultyFactor;
+                this.minimumGap -= score / GAMESETTINGS.gameplay.scalingDifficultyFactor;
                 if (this.minimumGap < GAMESETTINGS.gameplay.minimumGap) {
                     this.minimumGap = GAMESETTINGS.gameplay.minimumGap;
                 }
+            } else {
+                this.minimumGap = GAMESETTINGS.gameplay.minimumGap;
+            }
+            if (this.obstaclesYDeviation < GAMESETTINGS.gameplay.obstaclesYDeviation) {
+                this.obstaclesYDeviation += score / GAMESETTINGS.gameplay.scalingDifficultyFactor;
+            } else {
+                this.obstaclesYDeviation = GAMESETTINGS.gameplay.obstaclesYDeviation;
             }
         }
     }
@@ -557,7 +582,33 @@ export default class RunGame extends Phaser.Scene {
      */
     updateObstacles() {
         for (let i = 0; i < this.obstacles.length; i++) {
-            if (this.obstacles[i].ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
+            let currentObstacle = this.obstacles[i];
+
+            // Update dynamic obstacles
+            if (currentObstacle.ceilingObstacle.dynamic) {
+                currentObstacle.ceilingObstacle.updateDynamic();
+                currentObstacle.floorObstacle.updateDynamic();
+
+                // Update moving direction
+                if (
+                    currentObstacle.ceilingObstacle.body.vertices[0].y > 0 ||
+                    currentObstacle.floorObstacle.body.vertices[3].y < this.game.scale.height
+                ) {
+                    currentObstacle.ceilingObstacle.velocity *= -1;
+                    currentObstacle.floorObstacle.velocity *= -1;
+                }
+
+                // Update this.web anchor yOffset according to current obstacle
+                if (
+                    currentObstacle.ceilingObstacle.body.vertices[3].x <= this.web.pointB.x &&
+                    this.web.pointB.x <= currentObstacle.ceilingObstacle.body.vertices[2].x
+                ) {
+                    this.web.pointB.y = currentObstacle.ceilingObstacle.body.vertices[3].y;
+                }
+            }
+
+            // Obstacle generation
+            if (currentObstacle.ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
                 // Find the rightmost obstacle
                 /** @type {Phaser.Physics.Matter.Image} **/
                 let rightmostObstacle = this.obstacles[0].ceilingObstacle;
@@ -568,15 +619,48 @@ export default class RunGame extends Phaser.Scene {
                 }
 
                 // Move the unused obstacle to the front and set its Y values to random according to game settings
+                let currentObstacleYDeviation = Phaser.Math.Between(-this.obstaclesYDeviation, this.obstaclesYDeviation) * GAMESETTINGS.scaleFactor;
                 let randomObstacleY = this.obstacles.genRandomObstacleY(this.minimumGap, this.maximumGap);
-                this.obstacles[i].ceilingObstacle.setPosition(
+                currentObstacle.ceilingObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - this.obstacles[i].ceilingObstacle.displayHeight / 2
+                    randomObstacleY.y1 * GAMESETTINGS.scaleFactor - currentObstacle.ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
-                this.obstacles[i].floorObstacle.setPosition(
+                currentObstacle.floorObstacle.setPosition(
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
-                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2
+                    randomObstacleY.y2 * GAMESETTINGS.scaleFactor + currentObstacle.ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
+
+                //  Randomly generate dynamic obstacle with random direction of y movement, chance of generation specified in settings.js as dynamicObstacleChance
+                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.dynamicObstacleChance) === 1) {
+                    let direction = Phaser.Math.Between(0, 1)
+                    if (direction) {
+                        direction = -1;
+                    } else {
+                        direction = 1;
+                    }
+                    currentObstacle.ceilingObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    currentObstacle.floorObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    currentObstacle.ceilingObstacle.dynamic = true;
+                    currentObstacle.floorObstacle.dynamic = true;
+                }
+
+                // Randomly generate bomb. Generation chance: bombChance in settings.js
+                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.bombChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
+                    if (this.bomb !== undefined) {
+                        if (this.bomb.exploded) { this.bomb.reset(); }
+                        this.bomb.setPosition(
+                            currentObstacle.ceilingObstacle.x,
+                            (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
+                        );
+                    } else {
+                        this.bomb = new Bomb(
+                            this.matter.world,
+                            currentObstacle.ceilingObstacle.x,
+                            (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
+                        );
+                        this.bomb.setOnCollide(pair => { this.bomb.collisionHandler(pair); });
+                    }
+                }
             }
         }
     }
@@ -599,23 +683,37 @@ export default class RunGame extends Phaser.Scene {
 
         // -------------------------------- Apply input to player character -------------------------------- //
         if (control.left && !control.right) {  // Left movement (with scaling difficulty)
-            if (this.firstPlayerInput) {
-                this.firstPlayerInput = false;
-            }
             this.matter.applyForce(this.player.body, { x: -(GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
             if (!this.webExist) {
                 this.web = this.playerShootWeb(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
         } else if (control.right && !control.left) {  // Right movement (with scaling difficulty)
-            if (this.firstPlayerInput) {
-                this.firstPlayerInput = false;
-            }
             this.matter.applyForce(this.player.body, { x: (GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
             if (!this.webExist) {
                 this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
         } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
             this.playerCutWeb(this.web);
+        }
+
+        // Check if this is the first player interaction with the game
+        if (this.firstPlayerInput && (this.cursor.left.isDown || this.cursor.right.isDown || this.pointer.isDown || this.touch.isDown)) {
+            this.firstPlayerInput = false;
+        }
+    }
+
+    /***
+     * Clear the physics junks
+     */
+    cleanUp() {
+        this.matter.world.remove(this.player, true);
+        this.matter.world.removeConstraint(this.web, true);
+        if (this.bomb !== undefined) {
+            this.matter.world.remove(this.bomb);
+        }
+        for (let i = 0; i < this.obstacles.length; i++) {
+            this.matter.world.remove(this.obstacles[i].ceilingObstacle);
+            this.matter.world.remove(this.obstacles[i].floorObstacle);
         }
     }
 
@@ -633,12 +731,22 @@ export default class RunGame extends Phaser.Scene {
         this.debugText = "STATS FOR NERDS\n\n"
             + `gameOver = ${this.gameOver}\n`
             + `score = ${this.score}\n`
+            + `highScore = ${this.highScore}\n`
             + `minimumGap = ${this.minimumGap}\n`
             + `maximumGap = ${this.maximumGap}\n`
             + `health = ${this.health}\n`
             + '\n'
+            + `cursor.left.isDown = ${this.cursor.left.isDown}\n`
+            + `cursor.right.isDown = ${this.cursor.right.isDown}\n`
+            + `pointer.x = ${this.pointer.x}\n`
+            + `pointer.isDown = ${this.pointer.isDown}\n`
+            + `touch.x = ${this.touch.x}\n`
+            + `touch.isDown = ${this.touch.isDown}\n`
+            + '\n'
             + `player.x = ${this.player.x}\n`
             + `player.y = ${this.player.y}\n`
+            + `player.velocity.x = ${this.player.body.velocity.x}\n`
+            + `player.velocity.y = ${this.player.body.velocity.y}\n`
             + `webExist = ${this.webExist}\n`
             + `webLength = ${this.web.length}\n`
             + `ceilingAnchorOffset = ${this.web.pointB.x}\n`
@@ -652,6 +760,10 @@ export default class RunGame extends Phaser.Scene {
             + `worldBounds[1].y = ${this.worldBounds[1].y}\n`
             + `worldBounds[2].x = ${this.worldBounds[2].x}\n`
             + `worldBounds[2].y = ${this.worldBounds[2].y}\n`
+            + '\n'
+            + `obstaclesYDeviation = ${this.obstaclesYDeviation}\n`
+            + `minimumGap = ${this.minimumGap}\n`
+            + `maximumGap = ${this.maximumGap}\n`
         ;
         this.debugTextObj.text = this.debugText;
     }
