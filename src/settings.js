@@ -18,7 +18,7 @@ const GAMESETTINGS = {
     scaleFactor: 10,  // Scale the pixel art sprites up for smoother graphics
     player: {
         mass: 0.15,
-        bounce: 0.95,
+        bounce: 0.1,
         initialForce: {
             x: 0,
             y: 0
@@ -27,7 +27,7 @@ const GAMESETTINGS = {
         initialY: 160 * aspectRatio * 0.55,
         webOverhead: 10,  // Spider web shooting distance (Set 0 to shoot at the anchor directly above the player)
         webColor: 0x999999,  // Color of the spider web
-        webStiffness: 1.5
+        webStiffness: 0.15
     },
     gameplay: {
         scoreFactor: 1000,
@@ -55,7 +55,7 @@ const GAMESETTINGS = {
     controlSensitivity: 0.00015,
     gameOverDelay: 500,  // Delay before displaying game over screen
     controlDelayOnStart: 175,
-    debug: true
+    debug: false
 };
 
 export default GAMESETTINGS;
