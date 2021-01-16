@@ -647,11 +647,13 @@ export default class RunGame extends Phaser.Scene {
                 // Randomly generate bomb. Generation chance: bombChance in settings.js
                 if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.bombChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
                     if (this.bomb !== undefined) {
-                        if (this.bomb.exploded) { this.bomb.reset(); }
-                        this.bomb.setPosition(
-                            currentObstacle.ceilingObstacle.x,
-                            (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
-                        );
+                        if (this.bomb.exploded) {
+                            this.bomb.reset();
+                            this.bomb.setPosition(
+                                currentObstacle.ceilingObstacle.x,
+                                (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
+                            );
+                        }
                     } else {
                         this.bomb = new Bomb(
                             this.matter.world,
@@ -697,7 +699,12 @@ export default class RunGame extends Phaser.Scene {
         }
 
         // Check if this is the first player interaction with the game
-        if (this.firstPlayerInput && (this.cursor.left.isDown || this.cursor.right.isDown || this.pointer.isDown || this.touch.isDown)) {
+        if (this.firstPlayerInput && (
+            (this.cursor.left.getDuration() > GAMESETTINGS.controlDelayOnStart && this.cursor.left.isDown) ||
+            (this.cursor.right.getDuration() > GAMESETTINGS.controlDelayOnStart && this.cursor.right.isDown) ||
+            (this.pointer.getDuration() > GAMESETTINGS.controlDelayOnStart && this.pointer.noButtonDown()) ||
+            (this.touch.getDuration() > GAMESETTINGS.controlDelayOnStart && this.touch.noButtonDown()))
+        ) {
             this.firstPlayerInput = false;
         }
     }
