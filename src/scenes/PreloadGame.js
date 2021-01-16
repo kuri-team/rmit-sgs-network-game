@@ -14,7 +14,7 @@ export default class PreloadGame extends Phaser.Scene {
         this.loadBackground();
         this.loadEnvironment();
         this.loadPlayer();
-        this.loadFilterFX();
+        this.loadPostProcessingFX();
         this.loadSFX();
         this.loadSoundtrack();
     }
@@ -47,12 +47,7 @@ export default class PreloadGame extends Phaser.Scene {
         this.load.image('bound', 'assets/sprites/environment/bound.png');
         this.load.image('bound-left', 'assets/sprites/environment/bound-left.png');
         this.load.image('obstacle', 'assets/sprites/environment/obstacle.png');
-        this.load.spritesheet('booster-health', 'assets/sprites/environment/booster-health.png', {
-            frameWidth: 8,
-            frameHeight: 10,
-            startFrame: 0,
-            endFrame: 11
-        });
+        this.load.image('health-pack', 'assets/sprites/environment/health-pack.png');
     }
 
     loadPlayer() {
@@ -71,8 +66,8 @@ export default class PreloadGame extends Phaser.Scene {
         });
     }
 
-    loadFilterFX() {
-        this.load.spritesheet('vignette', 'assets/sprites/filter/vignette.png', {
+    loadPostProcessingFX() {
+        this.load.spritesheet('vignette', 'assets/sprites/post-processing/vignette.png', {
             frameWidth: 192,
             frameHeight: 192,
             startFrame: 0,
@@ -90,15 +85,17 @@ export default class PreloadGame extends Phaser.Scene {
     }
 
     createAnimations() {
-        this.anims.create({
-            key: 'background-anim',
-            frames: this.anims.generateFrameNumbers('background', {
-                start: 0,
-                end: 3
-            }),
-            frameRate: 1,
-            repeat: -1,
-        });
+        if (!GAMESETTINGS.debug) {
+            this.anims.create({
+                key: 'background-anim',
+                frames: this.anims.generateFrameNumbers('background', {
+                    start: 0,
+                    end: 3
+                }),
+                frameRate: 1,
+                repeat: -1,
+            });
+        }
         this.anims.create({
             key: 'player-dead-anim',
             frames: this.anims.generateFrameNumbers('player-dead', {
@@ -125,15 +122,6 @@ export default class PreloadGame extends Phaser.Scene {
                 end: 4
             }),
             frameRate: 2,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'booster-health-anim',
-            frames: this.anims.generateFrameNumbers('booster-health', {
-                start: 0,
-                end: 10
-            }),
-            frameRate: 10,
             repeat: -1,
         });
     }

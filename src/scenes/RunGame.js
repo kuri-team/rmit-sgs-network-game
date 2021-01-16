@@ -1,6 +1,7 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
 import Obstacles from "../game/Obstacles.js";
+import HealthPack from "../game/HealthPack.js";
 
 
 /***
@@ -65,6 +66,9 @@ export default class RunGame extends Phaser.Scene {
     /** @type {Obstacles} **/
     obstacles;
 
+    /** @type {HealthPack} **/
+    healthPack;
+
     /** @type {number} **/
     obstaclesYDeviation;
 
@@ -107,6 +111,7 @@ export default class RunGame extends Phaser.Scene {
         };
         this.debugText = "";
         this.bufferZone = GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor * 1.5;
+        this.healthPack = undefined;
         this.obstacles = undefined;
         this.obstaclesYDeviation = 0;
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
@@ -173,6 +178,9 @@ export default class RunGame extends Phaser.Scene {
                 this.highScore = this.score;
                 localStorage['highscore'] = this.highScore;
             }
+
+            this.cleanUp();
+
             this.scene.start('gameOver', {
                 score: this.score, highScore: this.highScore
             });
@@ -211,7 +219,7 @@ export default class RunGame extends Phaser.Scene {
             .setScale(GAMESETTINGS.scaleFactor)
             .setScrollFactor(1, 1)
             .setOrigin(0, 0.5);
-        background.play('background-anim');
+        if (!GAMESETTINGS.debug) { background.play('background-anim'); }
         background.setAlpha(0.25);
         return background;
     }
@@ -281,7 +289,7 @@ export default class RunGame extends Phaser.Scene {
             this.player.setTexture('player');
         }
 
-        return pair;  // Provide streamlining of data. Read more about pair in MatterJS documentation.
+        return pair;  // Provide streamlining of collision data. Read more about pair in MatterJS documentation.
     }
 
     /***
@@ -622,7 +630,7 @@ export default class RunGame extends Phaser.Scene {
                     randomObstacleY.y2 * GAMESETTINGS.scaleFactor + currentObstacle.ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
 
-                //  Generate dynamic obstacle with random direction of y movement
+                //  Randomly generate dynamic obstacle with random direction of y movement, chance of generation specified in settings.js as dynamicObstacleChance
                 if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.dynamicObstacleChance) === 1) {
                     let direction = Phaser.Math.Between(0, 1)
                     if (direction) {
@@ -634,6 +642,19 @@ export default class RunGame extends Phaser.Scene {
                     currentObstacle.floorObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
                     currentObstacle.ceilingObstacle.dynamic = true;
                     currentObstacle.floorObstacle.dynamic = true;
+                }
+
+                // Randomly generate health pack. Generation chance: healthPackChance in settings.js
+                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.healthPackChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
+                    if (this.healthPack !== undefined) {
+
+                    } else {
+                        this.healthPack = new HealthPack(
+                            this.matter.world,
+                            currentObstacle.ceilingObstacle.x,
+                            (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
+                        );
+                    }
                 }
             }
         }
@@ -673,6 +694,21 @@ export default class RunGame extends Phaser.Scene {
         // Check if this is the first player interaction with the game
         if (this.firstPlayerInput && (this.cursor.left.isDown || this.cursor.right.isDown || this.pointer.isDown || this.touch.isDown)) {
             this.firstPlayerInput = false;
+        }
+    }
+
+    /***
+     * Clear the physics junks
+     */
+    cleanUp() {
+        this.matter.world.remove(this.player, true);
+        this.matter.world.removeConstraint(this.web, true);
+        if (this.healthPack !== undefined) {
+            this.matter.world.remove(this.healthPack);
+        }
+        for (let i = 0; i < this.obstacles.length; i++) {
+            this.matter.world.remove(this.obstacles[i].ceilingObstacle);
+            this.matter.world.remove(this.obstacles[i].floorObstacle);
         }
     }
 
