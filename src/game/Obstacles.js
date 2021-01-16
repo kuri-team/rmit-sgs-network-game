@@ -28,12 +28,14 @@ export default class Obstacles extends Array {
                 world,
                 (GAMESETTINGS.gameplay.initialSafeZone + i * GAMESETTINGS.gameplay.distanceBetweenObstacles) * GAMESETTINGS.scaleFactor,
                 randomObstacleY.y1 * GAMESETTINGS.scaleFactor + currentYDeviation,
+                false
             );
             /** @type {Obstacle} **/
             let obstacle2 = new Obstacle(  // Lower obstacle
                 world,
                 obstacle1.x,
                 randomObstacleY.y2 * GAMESETTINGS.scaleFactor + currentYDeviation,
+                false
             );
 
             // Adjust center offset

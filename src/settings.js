@@ -26,7 +26,8 @@ const GAMESETTINGS = {
         initialX: 40,
         initialY: 160 * aspectRatio * 0.55,
         webOverhead: 10,  // Spider web shooting distance (Set 0 to shoot at the anchor directly above the player)
-        webColor: 0xaeaeae  // Color of the spider web
+        webColor: 0xaeaeae,  // Color of the spider web
+        webStiffness: 1.5
     },
     gameplay: {
         scoreFactor: 1000,
@@ -37,7 +38,10 @@ const GAMESETTINGS = {
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 68,
         maximumGap: 80,
-        obstaclesYDeviation: 160 * aspectRatio * 0.1
+        obstaclesYDeviation: 160 * aspectRatio * 0.1,  // TODO: 0.1 is not scalable in multiple aspect ratios. Find a better formula.
+        dynamicObstacleVelocity: 0.1,
+        dynamicObstacleChance: 1 / 20,
+        healthPackChance: 1 / 50,
     },
     UI: {
         scoreColor: '#cdcdcd',

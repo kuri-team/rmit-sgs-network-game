@@ -472,7 +472,7 @@ export default class RunGame extends Phaser.Scene {
         // Shoot the web
         this.webExist = true;
         let webLength = Math.sqrt(xOffset ** 2 + (this.player.y - anchorOffsetY) ** 2);
-        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength);
+        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength, GAMESETTINGS.player.webStiffness);
         webObj.pointB = {
             x: anchorOffsetX,
             y: anchorOffsetY
@@ -574,6 +574,27 @@ export default class RunGame extends Phaser.Scene {
      */
     updateObstacles() {
         for (let i = 0; i < this.obstacles.length; i++) {
+            // Update dynamic obstacles
+            if (this.obstacles[i].ceilingObstacle.dynamic) {
+                this.obstacles[i].ceilingObstacle.updateDynamic();
+                this.obstacles[i].floorObstacle.updateDynamic();
+
+                // Update moving direction
+                if (
+                    this.obstacles[i].ceilingObstacle.body.vertices[0].y > 0 ||
+                    this.obstacles[i].floorObstacle.body.vertices[3].y < this.game.scale.height
+                ) {
+                    this.obstacles[i].ceilingObstacle.velocity *= -1;
+                    this.obstacles[i].floorObstacle.velocity *= -1;
+                }
+
+                // Update this.web anchor yOffset according to current obstacle
+                if (this.obstacles[i].ceilingObstacle.body.vertices[3].x <= this.web.pointB.x && this.web.pointB.x <= this.obstacles[i].ceilingObstacle.body.vertices[2].x) {
+                    this.web.pointB.y = this.obstacles[i].ceilingObstacle.body.vertices[3].y;
+                }
+            }
+
+            // Obstacle generation
             if (this.obstacles[i].ceilingObstacle.body.vertices[0].x + this.bufferZone < this.viewport.scrollX) {
                 // Find the rightmost obstacle
                 /** @type {Phaser.Physics.Matter.Image} **/
@@ -595,6 +616,20 @@ export default class RunGame extends Phaser.Scene {
                     rightmostObstacle.x + GAMESETTINGS.gameplay.distanceBetweenObstacles * GAMESETTINGS.scaleFactor,
                     randomObstacleY.y2 * GAMESETTINGS.scaleFactor + this.obstacles[i].ceilingObstacle.displayHeight / 2 + currentObstacleYDeviation
                 );
+
+                //  Generate dynamic obstacle with random direction of y movement
+                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.dynamicObstacleChance) === 1) {
+                    let direction = Phaser.Math.Between(0, 1)
+                    if (direction) {
+                        direction = -1;
+                    } else {
+                        direction = 1;
+                    }
+                    this.obstacles[i].ceilingObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    this.obstacles[i].floorObstacle.velocity = GAMESETTINGS.gameplay.dynamicObstacleVelocity * GAMESETTINGS.scaleFactor * direction;
+                    this.obstacles[i].ceilingObstacle.dynamic = true;
+                    this.obstacles[i].floorObstacle.dynamic = true;
+                }
             }
         }
     }
