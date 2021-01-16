@@ -1,5 +1,6 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
+import Player from "../game/Player.js";
 import Obstacles from "../game/Obstacles.js";
 import Bomb from "../game/Bomb.js";
 
@@ -78,7 +79,7 @@ export default class RunGame extends Phaser.Scene {
     /** @type {number} **/
     maximumGap;
 
-    /** @type {Phaser.Physics.Matter.Sprite} **/
+    /** @type {Player} **/
     player;
 
     /** @type {MatterJS.BodyType} **/
@@ -107,18 +108,7 @@ export default class RunGame extends Phaser.Scene {
     init() {
         // Reset player.body physics
         if (this.player !== undefined && this.player.body !== undefined) {
-            this.player.body.force = {
-                x: 0,
-                y: 0,
-            };
-            this.player.body.velocity = {
-                x: 0,
-                y: 0
-            };
-            this.player.body.acceleration = {
-                x: 0,
-                y: 0
-            }
+            this.player.resetBody();
         }
 
         this.SFX = {
@@ -153,10 +143,11 @@ export default class RunGame extends Phaser.Scene {
         this.worldBounds = this.createWorldBounds();
         this.ceilingAnchor = this.createCeilingAnchor();
 
-        this.player = this.createPlayer(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
-        this.playerPivot = this.createPlayerPivot(this.player);
-        this.web = this.playerShootWeb(0);
-        this.player.setOnCollide(pair => { this.playerCollisionHandler(pair); });
+        this.player = new Player(
+            this.matter.world,
+            this.ceilingAnchor,
+            GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor,
+            GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
 
         this.createFilterFX();
 
@@ -253,80 +244,6 @@ export default class RunGame extends Phaser.Scene {
         );
     }
 
-    /***
-     * Create a player sprite at the specified xy coordinates
-     * @param {number} x
-     * @param {number} y
-     * @returns {Phaser.Physics.Matter.Sprite || Phaser.GameObjects.GameObject}
-     */
-    createPlayer(x, y) {
-        let player = this.matter.add.sprite(x, y, 'player')
-            .setScale(GAMESETTINGS.scaleFactor)
-            .setOrigin(0.5, 0)
-            .setVelocity(0, 0)
-            .setMass(GAMESETTINGS.player.mass * GAMESETTINGS.scaleFactor);
-        player.body.force = GAMESETTINGS.player.initialForce;
-        player.body.restitution = GAMESETTINGS.player.bounce;  // Enable bouncing
-
-        // Readjust collision box yOffset
-        for (let i = 0; i < player.body.vertices.length; i++) {
-            player.body.vertices[i].y += player.displayHeight / 2;
-        }
-
-        // Exclude legs from collision box
-        player.body.vertices[0].x += 3 * GAMESETTINGS.scaleFactor;
-        player.body.vertices[1].x -= 3 * GAMESETTINGS.scaleFactor;
-        player.body.vertices[2].x -= 3 * GAMESETTINGS.scaleFactor;
-        player.body.vertices[3].x += 3 * GAMESETTINGS.scaleFactor;
-
-        return player;
-    }
-
-    /***
-     * Player collision logic
-     * @param {Phaser.Physics.Matter.Matter.Pair} pair
-     * @return {Phaser.Physics.Matter.Matter.Pair}
-     */
-    playerCollisionHandler(pair) {
-        this.SFX.dead.play();
-
-        if (this.webExist) {
-            this.playerCutWeb(this.web);
-        }
-
-        if (--this.health < 1) {
-            this.matter.pause();
-            this.player.play('player-dead-anim');
-            this.player.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-                this.time.delayedCall(GAMESETTINGS.gameOverDelay, () => { this.gameOver = true });
-            }, this);
-        } else {
-            this.player.play('player-hurt-anim');
-            this.player.setTexture('player');
-        }
-
-        return pair;  // Provide streamlining of collision data. Read more about pair in MatterJS documentation.
-    }
-
-    /***
-     * Create a pivot where the player sprite will shoot the spider web from
-     * @param {Phaser.Physics.Matter.Sprite} playerObj
-     * @returns {MatterJS.BodyType}
-     */
-    createPlayerPivot(playerObj) {
-        let pivot = this.matter.add.circle(playerObj.x, playerObj.y, GAMESETTINGS.scaleFactor);
-        let joint = this.matter.add.joint(playerObj, pivot, 0, 0.7);
-        joint.pointA = {
-            x: 0,
-            y: -GAMESETTINGS.scaleFactor
-        };
-
-        // Turn off collision between player and pivot
-        pivot.collisionFilter = { group: -1 };
-        playerObj.collisionFilter = { group: -1 };
-
-        return pivot;
-    }
 
     /***
      * Create the ceiling collision box
@@ -378,20 +295,6 @@ export default class RunGame extends Phaser.Scene {
         return bounds;
     }
 
-    /***
-     * Create and return a ceiling anchor
-     * @returns {MatterJS.BodyType}
-     */
-    createCeilingAnchor() {
-        /** @type {MatterJS.BodyType} **/
-        let anchor = this.matter.add.rectangle(
-            0, -GAMESETTINGS.scaleFactor * 3, GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor
-        );
-        anchor.ignoreGravity = true;
-        anchor.isStatic = true;
-
-        return anchor;
-    }
 
     /***
      * Image post-processing effects
@@ -467,70 +370,6 @@ export default class RunGame extends Phaser.Scene {
         );
     }
 
-    /***
-     * Create a player web (type MatterJS constraint) between the player character and a specified x offset on the ceiling
-     * @param {number} xOffset
-     * @returns {MatterJS.ConstraintType}
-     */
-    playerShootWeb(xOffset) {
-        // Sound effect
-        if (this.justStarted) {
-            this.justStarted = false;
-        } else {
-            this.SFX.shoot.play();
-        }
-
-        // Set up variables and constants for calculations
-        const playerX = Math.floor(this.player.x);
-        let anchorOffsetX;
-        let anchorOffsetY = 0;
-        let obstacleAbovePlayer;
-
-        // Calculate targetAnchorOffsetX and targetAnchorOffsetY
-        anchorOffsetX = playerX + xOffset;
-        obstacleAbovePlayer = this.obstacles.getObstacleAbove(this.player, xOffset);
-        if (obstacleAbovePlayer !== undefined) {
-            anchorOffsetY = obstacleAbovePlayer.body.vertices[3].y + GAMESETTINGS.scaleFactor * 3;  // TODO: find out why this works
-        }
-
-        // Shoot the web
-        this.webExist = true;
-        let webLength = Math.sqrt(xOffset ** 2 + (this.player.y - anchorOffsetY) ** 2);
-        let webObj = this.matter.add.constraint(this.playerPivot, this.ceilingAnchor, webLength, GAMESETTINGS.player.webStiffness);
-        webObj.pointB = {
-            x: anchorOffsetX,
-            y: anchorOffsetY
-        };
-        return webObj;
-    }
-
-    /***
-     * Destroy the specified player web (type MatterJS constraint)
-     * @param {MatterJS.ConstraintType} playerWebObject
-     * @returns {Phaser.Physics.Matter.World}
-     */
-    playerCutWeb(playerWebObject) {
-        this.webExist = false;
-        return this.matter.world.removeConstraint(playerWebObject, true);
-    }
-
-    /***
-     * Show the web on screen if it exists
-     */
-    renderPlayerWeb() {
-        this.graphics.clear();
-
-        if (this.webExist) {
-            let lineThickness = GAMESETTINGS.scaleFactor
-            let lineColor = GAMESETTINGS.player.webColor;
-
-            this.graphics.lineStyle(lineThickness, lineColor, 1);
-            this.graphics.lineBetween(
-                this.web.pointB.x, this.web.pointB.y - GAMESETTINGS.scaleFactor * 3,
-                this.player.x, this.player.y
-            );
-        }
-    }
 
     /***
      * Update the current score (keep the highest score if the player swings backward)
@@ -683,47 +522,6 @@ export default class RunGame extends Phaser.Scene {
         }
     }
 
-    /***
-     * Update the player character's properties according to player input
-     */
-    updatePlayer() {
-        // -------------------------------- Categorize inputs -------------------------------- //
-        const control = {
-            left:
-                this.cursor.left.isDown ||
-                (this.pointer.isDown && this.pointer.x < this.scale.width / 2) ||
-                (this.touch.isDown && this.touch.x < this.scale.width / 2),
-            right:
-                this.cursor.right.isDown ||
-                (this.pointer.isDown && this.pointer.x > this.scale.width / 2) ||
-                (this.touch.isDown && this.touch.x > this.scale.width / 2),
-        };
-
-        // -------------------------------- Apply input to player character -------------------------------- //
-        if (control.left && !control.right) {  // Left movement (with scaling difficulty)
-            this.matter.applyForce(this.player.body, { x: -(GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
-            if (!this.webExist) {
-                this.web = this.playerShootWeb(-GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
-            }
-        } else if (control.right && !control.left) {  // Right movement (with scaling difficulty)
-            this.matter.applyForce(this.player.body, { x: (GAMESETTINGS.controlSensitivity * GAMESETTINGS.scaleFactor ** 2 / 8) * (this.score / 20 + 1), y: 0 });  // This formula produces consistent force scaling with scaleFactor
-            if (!this.webExist) {
-                this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
-            }
-        } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
-            this.playerCutWeb(this.web);
-        }
-
-        // Check if this is the first player interaction with the game
-        if (this.firstPlayerInput && (
-            (this.cursor.left.getDuration() > GAMESETTINGS.controlDelayOnStart && this.cursor.left.isDown) ||
-            (this.cursor.right.getDuration() > GAMESETTINGS.controlDelayOnStart && this.cursor.right.isDown) ||
-            (this.pointer.getDuration() > GAMESETTINGS.controlDelayOnStart && this.pointer.noButtonDown()) ||
-            (this.touch.getDuration() > GAMESETTINGS.controlDelayOnStart && this.touch.noButtonDown()))
-        ) {
-            this.firstPlayerInput = false;
-        }
-    }
 
     /***
      * Clear the physics junks
