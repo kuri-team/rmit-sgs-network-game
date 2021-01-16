@@ -38,10 +38,10 @@ export default class GameOver extends Phaser.Scene {
             },
             active: () => {
                 this.add.text(6.25 * GAMESETTINGS.scaleFactor, 2.5 * GAMESETTINGS.scaleFactor, `Highscore: ${data.highScore}\nScore: ${data.score}`, {
-                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#aeaeae', fontStyle: 'bold'
+                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: '#6f6f6f', fontStyle: 'bold'
                 });
                 this.restart = this.add.text(0, 2.5 * GAMESETTINGS.scaleFactor, 'Restart', {
-                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: GAMESETTINGS.backgroundColor, backgroundColor: '#aeaeae', fontStyle: 'bold', padding: {
+                    fontSize: 15 * GAMESETTINGS.scaleFactor, fontFamily: 'Kenney High Square, Arial, sans-serif', color: GAMESETTINGS.backgroundColor, backgroundColor: '#6f6f6f', fontStyle: 'bold', padding: {
                         left: 2.5 * GAMESETTINGS.scaleFactor,
                         right: 1.25 * GAMESETTINGS.scaleFactor,
                         top: 0,

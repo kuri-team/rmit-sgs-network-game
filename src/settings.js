@@ -26,7 +26,7 @@ const GAMESETTINGS = {
         initialX: 40,
         initialY: 160 * aspectRatio * 0.55,
         webOverhead: 10,  // Spider web shooting distance (Set 0 to shoot at the anchor directly above the player)
-        webColor: 0xaeaeae,  // Color of the spider web
+        webColor: 0x999999,  // Color of the spider web
         webStiffness: 1.5
     },
     gameplay: {
@@ -41,12 +41,12 @@ const GAMESETTINGS = {
         obstaclesYDeviation: 160 * aspectRatio * 0.1,  // TODO: 0.1 is not scalable in multiple aspect ratios. Find a better formula.
         dynamicObstacleVelocity: 0.1,
         dynamicObstacleChance: 1 / 20,
-        healthPackChance: 1 / 30,
+        bombChance: 1 / 30,
     },
     UI: {
         scoreColor: '#cdcdcd',
-        scoreStroke: '#999999',
-        healthColor: '#b30000'
+        scoreStroke: '#6f6f6f',
+        healthColor: '#e60028'
     },
     gravity: {
         x: 0,
@@ -54,7 +54,7 @@ const GAMESETTINGS = {
     },
     controlSensitivity: 0.00015,
     gameOverDelay: 500,  // Delay before displaying game over screen
-    debug: true
+    debug: false
 };
 
 export default GAMESETTINGS;
