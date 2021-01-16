@@ -1,7 +1,7 @@
 import GAMESETTINGS from "../settings.js";
 import game from "../game.js";
 import Obstacles from "../game/Obstacles.js";
-import HealthPack from "../game/HealthPack.js";
+import Bomb from "../game/Bomb.js";
 
 
 /***
@@ -66,8 +66,8 @@ export default class RunGame extends Phaser.Scene {
     /** @type {Obstacles} **/
     obstacles;
 
-    /** @type {HealthPack} **/
-    healthPack;
+    /** @type {Bomb} **/
+    bomb;
 
     /** @type {number} **/
     obstaclesYDeviation;
@@ -111,7 +111,7 @@ export default class RunGame extends Phaser.Scene {
         };
         this.debugText = "";
         this.bufferZone = GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor * 1.5;
-        this.healthPack = undefined;
+        this.bomb = undefined;
         this.obstacles = undefined;
         this.obstaclesYDeviation = 0;
         this.minimumGap = GAMESETTINGS.gameplay.maximumGap;
@@ -140,7 +140,7 @@ export default class RunGame extends Phaser.Scene {
         this.player = this.createPlayer(GAMESETTINGS.player.initialX * GAMESETTINGS.scaleFactor, GAMESETTINGS.player.initialY * GAMESETTINGS.scaleFactor);
         this.playerPivot = this.createPlayerPivot(this.player);
         this.web = this.playerShootWeb(0);
-        this.player.setOnCollide(pair => { this.playerCollideHandler(pair); });
+        this.player.setOnCollide(pair => { this.playerCollisionHandler(pair); });
 
         this.createFilterFX();
 
@@ -271,7 +271,7 @@ export default class RunGame extends Phaser.Scene {
      * @param {Phaser.Physics.Matter.Matter.Pair} pair
      * @return {Phaser.Physics.Matter.Matter.Pair}
      */
-    playerCollideHandler(pair) {
+    playerCollisionHandler(pair) {
         this.SFX.dead.play();
 
         if (this.webExist) {
@@ -644,16 +644,21 @@ export default class RunGame extends Phaser.Scene {
                     currentObstacle.floorObstacle.dynamic = true;
                 }
 
-                // Randomly generate health pack. Generation chance: healthPackChance in settings.js
-                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.healthPackChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
-                    if (this.healthPack !== undefined) {
-
+                // Randomly generate bomb. Generation chance: bombChance in settings.js
+                if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.bombChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
+                    if (this.bomb !== undefined) {
+                        if (this.bomb.exploded) { this.bomb.reset(); }
+                        this.bomb.setPosition(
+                            currentObstacle.ceilingObstacle.x,
+                            (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
+                        );
                     } else {
-                        this.healthPack = new HealthPack(
+                        this.bomb = new Bomb(
                             this.matter.world,
                             currentObstacle.ceilingObstacle.x,
                             (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
                         );
+                        this.bomb.setOnCollide(pair => { this.bomb.collisionHandler(pair); });
                     }
                 }
             }
@@ -703,8 +708,8 @@ export default class RunGame extends Phaser.Scene {
     cleanUp() {
         this.matter.world.remove(this.player, true);
         this.matter.world.removeConstraint(this.web, true);
-        if (this.healthPack !== undefined) {
-            this.matter.world.remove(this.healthPack);
+        if (this.bomb !== undefined) {
+            this.matter.world.remove(this.bomb);
         }
         for (let i = 0; i < this.obstacles.length; i++) {
             this.matter.world.remove(this.obstacles[i].ceilingObstacle);

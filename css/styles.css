@@ -84,15 +84,15 @@ p {
 }
 
 .portrait-mode-message p {
-    color: #aeaeae;
+    color: #999999;
     font-family: "Kenney Pixel", sans-serif;
     font-size: large;
     text-align: center;
 }
 
 .portrait-mode-message h1 {
-    color: #999999;
+    color: #6f6f6f;
     font-family: "Kenney Blocks", sans-serif;
-    font-size: xxx-large;
+    font-size: xx-large;
     text-align: center;
 }

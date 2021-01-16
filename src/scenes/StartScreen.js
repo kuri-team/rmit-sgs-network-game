@@ -126,12 +126,12 @@ export default class StartScreen extends Phaser.Scene {
             },
             active: () => {
                 let h1Style = {
-                    color: '#999999',
+                    color: '#6f6f6f',
                     fontFamily: "Kenney Blocks",
                     fontSize: 9 * GAMESETTINGS.scaleFactor,
                 };
                 let pStyle = {
-                    color: '#aeaeae',
+                    color: '#999999',
                     fontFamily: "Kenney Pixel",
                     fontSize: 7 * GAMESETTINGS.scaleFactor,
                 };

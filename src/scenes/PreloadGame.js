@@ -14,6 +14,7 @@ export default class PreloadGame extends Phaser.Scene {
         this.loadBackground();
         this.loadEnvironment();
         this.loadPlayer();
+        this.loadFX();
         this.loadPostProcessingFX();
         this.loadSFX();
         this.loadSoundtrack();
@@ -47,7 +48,7 @@ export default class PreloadGame extends Phaser.Scene {
         this.load.image('bound', 'assets/sprites/environment/bound.png');
         this.load.image('bound-left', 'assets/sprites/environment/bound-left.png');
         this.load.image('obstacle', 'assets/sprites/environment/obstacle.png');
-        this.load.image('health-pack', 'assets/sprites/environment/health-pack.png');
+        this.load.image('bomb', 'assets/sprites/environment/bomb.png');
     }
 
     loadPlayer() {
@@ -63,6 +64,15 @@ export default class PreloadGame extends Phaser.Scene {
             frameHeight: 10,
             startFrame: 0,
             endFrame: 4
+        });
+    }
+
+    loadFX() {
+        this.load.spritesheet('explosion', 'assets/sprites/fx/explosion.png', {
+            frameWidth: 15,
+            frameHeight: 15,
+            startFrame: 0,
+            endFrame: 5
         });
     }
 
@@ -114,6 +124,16 @@ export default class PreloadGame extends Phaser.Scene {
             }),
             frameRate: 20,
             repeat: 0,
+        });
+        this.anims.create({
+            key: 'explosion-anim',
+            frames: this.anims.generateFrameNumbers('explosion', {
+                start: 0,
+                end: 5
+            }),
+            frameRate: 20,
+            repeat: 0,
+            hideOnComplete: true
         });
         this.anims.create({
             key: 'vignette-anim',
