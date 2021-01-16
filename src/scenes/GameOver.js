@@ -61,7 +61,7 @@ export default class GameOver extends Phaser.Scene {
             .setScrollFactor(0, 0)
             .play('vignette-anim');
 
-        this.input.on('gameobjectdown', () => {
+        this.input.on('gameobjectup', () => {
             this.restartGame();
         }, this);
 

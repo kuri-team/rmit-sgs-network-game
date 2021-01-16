@@ -97,7 +97,7 @@ export default class StartScreen extends Phaser.Scene {
         this.web.length = this.player.y;
 
         //  Start game when user clicks/touches the spider
-        this.input.on('gameobjectdown', () => {
+        this.input.on('gameobjectup', () => {
             this.startGame();
         }, this);
 
