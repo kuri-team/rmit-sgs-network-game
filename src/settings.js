@@ -41,8 +41,8 @@ const GAMESETTINGS = {
         obstaclesYDeviation: 160 * aspectRatio * 0.1,  // TODO: 0.1 is not scalable in multiple aspect ratios. Find a better formula.
         dynamicObstacleVelocity: 0.1,
         dynamicObstacleChance: 1 / 20,
-        bombChance: 1 / 45,
-        bombScale: 0.5
+        bombChance: 1 / 100,
+        bombScale: 1
     },
     UI: {
         scoreColor: '#cdcdcd',
