@@ -1,11 +1,12 @@
 // Enable adaptive scaling on multiple screen sizes
-let aspectRatio = window.innerHeight / window.innerWidth;
-if (aspectRatio > 0.75) {
-    aspectRatio = 0.75;  // Default aspect ratio 4:3 for horizontal mode
-}
-if (screen.availWidth < screen.availHeight) {
-    aspectRatio = 0.5625;  // Default aspect ratio 16:9 for horizontal mode
-}
+// let aspectRatio = window.innerHeight / window.innerWidth;
+// if (aspectRatio > 0.75) {
+//     aspectRatio = 0.75;  // Default aspect ratio 4:3 for horizontal mode
+// }
+// if (screen.availWidth < screen.availHeight) {
+//     aspectRatio = 0.5625;  // Default aspect ratio 16:9 for horizontal mode
+// }
+let aspectRatio = 0.5625;
 
 
 /***
@@ -41,7 +42,7 @@ const GAMESETTINGS = {
         obstaclesYDeviation: 160 * aspectRatio * 0.05,  // TODO: 0.05 is not scalable in multiple aspect ratios. Find a better formula.
         dynamicObstacleVelocity: 0.05,
         dynamicObstacleChance: 1 / 20,
-        bombChance: 1 / 75,
+        bombChance: 1 / 60,
         bombScale: 0.75
     },
     UI: {
