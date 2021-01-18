@@ -31,7 +31,7 @@ const GAMESETTINGS = {
     },
     gameplay: {
         scoreFactor: 1000,
-        scalingDifficultyFactor: 2,  // Cannot be larger than maximumGap
+        scalingDifficultyFactor: 1,  // Cannot be larger than maximumGap
         startingHealth: 3,
         initialSafeZone: 0,  // The initial zone where no obstacles will be generated
         obstacleOverhead: 10,  // Number of obstacles rendered ahead of time. Heavily affect performance
@@ -42,7 +42,7 @@ const GAMESETTINGS = {
         dynamicObstacleVelocity: 0.1,
         dynamicObstacleChance: 1 / 20,
         bombChance: 1 / 100,
-        bombScale: 1
+        bombScale: 0.75
     },
     UI: {
         scoreColor: '#cdcdcd',
@@ -55,7 +55,7 @@ const GAMESETTINGS = {
     },
     controlSensitivity: 0.0002,
     gameOverDelay: 500,  // Delay before displaying game over screen
-    controlDelayOnStart: 500,
+    controlDelayOnStart: 450,
     debug: false
 };
 
