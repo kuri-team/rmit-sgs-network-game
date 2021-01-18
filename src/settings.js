@@ -1,12 +1,4 @@
-// Enable adaptive scaling on multiple screen sizes
-// let aspectRatio = window.innerHeight / window.innerWidth;
-// if (aspectRatio > 0.75) {
-//     aspectRatio = 0.75;  // Default aspect ratio 4:3 for horizontal mode
-// }
-// if (screen.availWidth < screen.availHeight) {
-//     aspectRatio = 0.5625;  // Default aspect ratio 16:9 for horizontal mode
-// }
-let aspectRatio = 0.5625;
+let aspectRatio = 0.5625;  // Default aspect ratio 16:9
 
 
 /***
