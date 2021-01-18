@@ -41,7 +41,8 @@ const GAMESETTINGS = {
         obstaclesYDeviation: 160 * aspectRatio * 0.1,  // TODO: 0.1 is not scalable in multiple aspect ratios. Find a better formula.
         dynamicObstacleVelocity: 0.1,
         dynamicObstacleChance: 1 / 20,
-        bombChance: 1 / 30
+        bombChance: 1 / 30,
+        bombScale: 1
     },
     UI: {
         scoreColor: '#cdcdcd',
@@ -54,7 +55,7 @@ const GAMESETTINGS = {
     },
     controlSensitivity: 0.0002,
     gameOverDelay: 500,  // Delay before displaying game over screen
-    controlDelayOnStart: 175,
+    controlDelayOnStart: 500,
     debug: false
 };
 

@@ -11,7 +11,7 @@ export default class Bomb extends Phaser.Physics.Matter.Sprite {
      */
     constructor(world, x, y) {
         super(world, x, y, 'bomb');
-        this.setScale(GAMESETTINGS.scaleFactor, GAMESETTINGS.scaleFactor);
+        this.setScale(GAMESETTINGS.scaleFactor * GAMESETTINGS.gameplay.bombScale);
         this.setSensor(true);
         this.setIgnoreGravity(true);
         this.setDepth(-1);
