@@ -38,7 +38,7 @@ const GAMESETTINGS = {
         distanceBetweenObstacles: 32,  // 32 is the width of the obstacle sprite TODO: more scalable approach?
         minimumGap: 68,
         maximumGap: 80,
-        obstaclesYDeviation: 160 * aspectRatio * 0.05,  // TODO: 0.1 is not scalable in multiple aspect ratios. Find a better formula.
+        obstaclesYDeviation: 160 * aspectRatio * 0.05,  // TODO: 0.05 is not scalable in multiple aspect ratios. Find a better formula.
         dynamicObstacleVelocity: 0.05,
         dynamicObstacleChance: 1 / 20,
         bombChance: 1 / 100,
