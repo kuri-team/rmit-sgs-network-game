@@ -663,8 +663,8 @@ export default class RunGame extends Phaser.Scene {
                 // Randomly generate bomb. Generation chance: bombChance in settings.js
                 if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.bombChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
                     if (this.bomb !== undefined) {
-                        if (this.bomb.exploded) {
-                            this.bomb.reset();
+                        if (this.bomb.exploded && !this.bomb.visible) {
+                            this.bomb.resetState();
                             this.bomb.setPosition(
                                 currentObstacle.ceilingObstacle.x,
                                 (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
@@ -794,6 +794,7 @@ export default class RunGame extends Phaser.Scene {
         if (this.bomb !== undefined) {
             this.debugText += '\n'
                 + `bomb.exploded = ${this.bomb.exploded}\n`
+                + `bomb.visible = ${this.bomb.visible}\n`
                 + `bomb.x = ${this.bomb.x}\n`
                 + `bomb.y = ${this.bomb.y}\n`
         }

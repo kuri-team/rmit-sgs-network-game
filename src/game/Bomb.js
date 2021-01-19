@@ -25,11 +25,12 @@ export default class Bomb extends Phaser.Physics.Matter.Sprite {
     /***
      * Reset bomb state
      */
-    reset() {
+    resetState() {
         this.exploded = false;
         this.setCollisionCategory(1);
+        this.anims.remove('explosion-anim');
         this.setTexture('bomb');
-        this.visible = true;
+        this.setVisible(true);
     }
 
     /***
