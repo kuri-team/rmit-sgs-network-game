@@ -1,3 +1,5 @@
+import "./lib/phaser.min.js";
+import "./lib/webfont.js";
 import GAMESETTINGS from "./settings.js";
 import PreloadGame from "./scenes/PreloadGame.js";
 import StartScreen from "./scenes/StartScreen.js";
