@@ -708,7 +708,7 @@ export default class RunGame extends Phaser.Scene {
             if (!this.webExist) {
                 this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
-        } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
+        } else if ((control.left && control.right) || !control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
             this.playerCutWeb(this.web);
         }
 

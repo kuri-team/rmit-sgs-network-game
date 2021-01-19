@@ -32,10 +32,10 @@ const GAMESETTINGS = {
         minimumGap: 68,
         maximumGap: 80,
         obstaclesYDeviation: 160 * aspectRatio * 0.05,  // TODO: 0.05 is not scalable in multiple aspect ratios. Find a better formula.
-        dynamicObstacleVelocity: 0.05,
+        dynamicObstacleVelocity: 0.1,
         dynamicObstacleChance: 1 / 20,
         bombChance: 1 / 60,
-        bombScale: 0.75
+        bombScale: 0.8
     },
     UI: {
         scoreColor: '#cdcdcd',
