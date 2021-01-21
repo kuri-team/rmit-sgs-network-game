@@ -105,22 +105,6 @@ export default class RunGame extends Phaser.Scene {
 
 
     init() {
-        // Reset player.body physics
-        if (this.player !== undefined && this.player.body !== undefined) {
-            this.player.body.force = {
-                x: 0,
-                y: 0,
-            };
-            this.player.body.velocity = {
-                x: 0,
-                y: 0
-            };
-            this.player.body.acceleration = {
-                x: 0,
-                y: 0
-            }
-        }
-
         this.SFX = {
             dead: undefined,
             shot: undefined
@@ -278,6 +262,20 @@ export default class RunGame extends Phaser.Scene {
         player.body.vertices[1].x -= 3 * GAMESETTINGS.scaleFactor;
         player.body.vertices[2].x -= 3 * GAMESETTINGS.scaleFactor;
         player.body.vertices[3].x += 3 * GAMESETTINGS.scaleFactor;
+
+        // Initialize player's physics
+        player.body.force = {
+            x: 0,
+            y: 0,
+        };
+        player.body.velocity = {
+            x: 0,
+            y: 0
+        };
+        player.body.acceleration = {
+            x: 0,
+            y: 0
+        }
 
         return player;
     }
@@ -663,8 +661,8 @@ export default class RunGame extends Phaser.Scene {
                 // Randomly generate bomb. Generation chance: bombChance in settings.js
                 if (Phaser.Math.Between(1, 1 / GAMESETTINGS.gameplay.bombChance) === 1 && !currentObstacle.ceilingObstacle.dynamic) {
                     if (this.bomb !== undefined) {
-                        if (this.bomb.exploded) {
-                            this.bomb.reset();
+                        if (this.bomb.exploded && !this.bomb.visible) {
+                            this.bomb.resetState();
                             this.bomb.setPosition(
                                 currentObstacle.ceilingObstacle.x,
                                 (currentObstacle.ceilingObstacle.y + currentObstacle.floorObstacle.y) / 2
@@ -710,7 +708,7 @@ export default class RunGame extends Phaser.Scene {
             if (!this.webExist) {
                 this.web = this.playerShootWeb(GAMESETTINGS.player.webOverhead * GAMESETTINGS.scaleFactor);
             }
-        } else if (!control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
+        } else if ((control.left && control.right) || !control.left && !control.right && this.webExist && !this.firstPlayerInput) {  // Cut web
             this.playerCutWeb(this.web);
         }
 
@@ -794,6 +792,7 @@ export default class RunGame extends Phaser.Scene {
         if (this.bomb !== undefined) {
             this.debugText += '\n'
                 + `bomb.exploded = ${this.bomb.exploded}\n`
+                + `bomb.visible = ${this.bomb.visible}\n`
                 + `bomb.x = ${this.bomb.x}\n`
                 + `bomb.y = ${this.bomb.y}\n`
         }
