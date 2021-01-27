@@ -142,9 +142,7 @@ export default class RunGame extends Phaser.Scene {
         this.web = this.playerShootWeb(0);
         this.player.setOnCollide(pair => { this.playerCollisionHandler(pair); });
 
-        if (GAMESETTINGS.postFX) {
-            this.createFilterFX();
-        }
+        this.createFilterFX();
 
         // UI
         this.createUI();
